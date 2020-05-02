@@ -554,7 +554,8 @@ class SmartBricks:
 
         start = time.time()
         ispathdir = os.path.isdir(self.outdir)
-        if not ispathdir: os.mkdir(self.outdir)
+        if not ispathdir: os.makedirs(self.outdir, exist_ok=True)
+
 
         #fig0 = fig
         fig = plt.figure(figsize=(20,20))

@@ -268,7 +268,7 @@ WindowManager:
 
                 Spinner
                     id: minbrick
-                    text: '48'
+                    text: '8'
                     values: ('8', '16', '32', '48', '64')
                     font_size: 25
 
@@ -282,7 +282,7 @@ WindowManager:
 
                 Spinner
                     id: ncolors
-                    text: '8'
+                    text: '4'
                     values: ('4', '6', '8', '10', '12')
                     font_size: 25
 
@@ -314,6 +314,7 @@ WindowManager:
 
     name: "result"
     image: image
+    #save_btn2: save_btn2
 
     canvas:
         Color:
@@ -331,9 +332,10 @@ WindowManager:
             id: tp
 
             CustButton:
+                id: save_btn2
                 text: 'SAVE'
                 size_hint_x: 0.2
-                on_release: root.show_popup()
+                on_press: root.show_popup()
 
             CustButton:
                 text: 'NEW'
@@ -370,6 +372,7 @@ WindowManager:
 
         TextInput:
             #size_hint_x: .8
+            text: 'test'
             id: pname
             font_size: 28
             multiline: False
