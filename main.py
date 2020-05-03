@@ -32,10 +32,13 @@ class GalleryWindow(Screen):
         except:
             pass
 
-outdir_ = '/home/omar/myproj_out/tmp'
-outdir = Path(outdir_)
-if outdir.exists() & outdir.is_dir():
-    shutil.rmtree(outdir)
+class LoadWindow(Screen):
+
+    filechooser = ObjectProperty(None)
+
+    #def selected(self,filename):
+    #    self.sel = str(filename[0])
+
 
 class SetupWindow(Screen):
 
@@ -50,20 +53,37 @@ class SetupWindow(Screen):
 
     def createBrick(self, imgpath, Ncolors, lowsize):
 
-        SB = SmartBricks(imgpath=imgpath, Ncolors=np.int(Ncolors), lowsize=np.int(lowsize), outdir=outdir_)
+        self.outdir_ = '/home/omar/myproj_out/tmp'
+        self.outdir = Path(self.outdir_)
+        if self.outdir.exists() & self.outdir.is_dir():
+            shutil.rmtree(self.outdir)
+
+        SB = SmartBricks(imgpath=imgpath, Ncolors=np.int(Ncolors), lowsize=np.int(lowsize), outdir=self.outdir_)
         SB.saveProj()
 
 class ResultWindow(Screen):
 
     image = ObjectProperty(None)
-    #save_btn2 = ObjectProperty(None)
-
-    #def __init__(self):
-        #self.sd = SetupWindow()
+    galleryid2 = ObjectProperty(None)
+    #lg = LoadWindow()
+    #print(lg.filechooser.selection[0])
+    #print(type(lg.filechooser.selection))
+    #if lg.filechooser.selection[0] is None: outdir_ = str(lg.filechooser.selection[0])
 
     def on_enter(self, *args):
         #print(outdir_)
-        self.ids.image.source = outdir_+'/'+'all'+'.jpeg'
+        #self.sw = SetupWindow()
+
+        #print(len(filesel))
+
+        try:
+            filesel = self.galleryid2.filechooser.selection[0]
+            self.outdir_ = filesel
+            self.ids.image.source = self.outdir_+'/'+'all'+'.jpeg'
+        except IndexError:
+            self.outdir_ = '/home/omar/myproj_out/tmp'
+            self.ids.image.source = self.outdir_+'/'+'all'+'.jpeg'
+
         #self.save_btn2.bind(on_release=self.show_popup())
 
     def show_popup(self):
@@ -90,7 +110,7 @@ class ResultWindow(Screen):
         dest = '/home/omar/myproj_out/'+self.show.pname.text
         print(dest)
         #os.makedirs(dest, exist_ok=True)
-        shutil.copytree(outdir, dest)
+        shutil.copytree(self.outdir_, dest)
 
         #dest_ = '/home/omar/myproj_out/'+savedir
         #dest = Path(dest_)
@@ -99,13 +119,18 @@ class ResultWindow(Screen):
         #shutil.copytree(outdir_, dest_)
         #outdir_ = dest_
 
+    #def show_name(self):
+
+        #self.lg = LoadWindow()
+        #test = self.galleryid2.filechooser.selection[0]
+        #print(self.lg.filechooser.selection[0])
+        #print(test)
+
 class P(Screen):
 
     cancel_btn = ObjectProperty(None)
     save_btn = ObjectProperty(None)
     pname = ObjectProperty(None)
-
-
 
 class WindowManager(ScreenManager):
     pass

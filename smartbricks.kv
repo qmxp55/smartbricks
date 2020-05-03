@@ -10,6 +10,9 @@ WindowManager:
         #id: second
         galleryid: galleryid
     ResultWindow:
+        galleryid2: galleryid2
+    LoadWindow:
+        id: galleryid2
 
 <CustButton@Button>:
     font_size: 40
@@ -131,7 +134,7 @@ WindowManager:
                 #size_hint: .7, .05
                 on_release:
                     app.root.current = 'new'
-                    root.on_press()
+                    #root.on_press()
 
 
 # <FileWindow>:
@@ -206,7 +209,7 @@ WindowManager:
                 #pos_hint: {'x': .3, 'y': .1}
                 #valign: 'middle'
                 size_hint: .4, .3
-                on_release:
+                on_release: app.root.current = 'load'
 
         BoxLayout:
             size_hint_y: 0.1
@@ -214,6 +217,58 @@ WindowManager:
                 text: "Copyright (c) 2020 Omar Ruiz"
                 font_size: 15
                 valign: 'bottom'
+
+<LoadWindow>:
+
+    name: 'load'
+    filechooser: filechooser
+    id: galleryid2
+
+    GridLayout:
+        cols: 1
+
+        GridLayout:
+            size_hint_y: .6
+            cols: 2
+
+            FileChooserIconView:
+
+                size_hint_x: .4
+                id: filechooser
+                path: '/home/omar/myproj_out'
+                dirselect: True
+                canvas.before:
+                    Color:
+                        rgb: .5, .4, .5
+                    Rectangle:
+                        pos: self.pos
+                        size: self.size
+                #on_selection: root.selected(filechooser.selection)
+                #on_selection: entry.text = str(filechooser.selection[0])
+
+        BoxLayout:
+
+            size_hint_y: .3
+            orientation: 'vertical'
+            padding: 40
+            spacing: 20
+
+            CustButton:
+                text: "CONTINUE"
+                #size_hint: .7, .05
+                on_release:
+                    app.root.current = 'result'
+                    print(filechooser.selection[0])
+                    print(type(filechooser.selection[0]))
+                    #galleryid.selected(filechooser.selection)
+
+            CustButton:
+                text: "RETURN"
+                #size_hint: .7, .05
+                on_release:
+                    app.root.current = 'init'
+                    #root.on_press()
+
 
 <SetupWindow>:
 
@@ -348,6 +403,7 @@ WindowManager:
             CustButton:
                 text: 'COLORS'
                 size_hint_x: 0.2
+                #on_press: root.show_name()
 
         BoxLayout:
             orientation: 'vertical'
