@@ -395,6 +395,7 @@ WindowManager:
             CustButton:
                 text: 'NEW'
                 size_hint_x: 0.2
+                on_press: app.root.current = 'init'
 
             CustButton:
                 text: 'BRICKS'
@@ -403,7 +404,7 @@ WindowManager:
             CustButton:
                 text: 'COLORS'
                 size_hint_x: 0.2
-                #on_press: root.show_name()
+                #on_press: root.toggle_state()
 
         BoxLayout:
             orientation: 'vertical'
@@ -412,6 +413,19 @@ WindowManager:
             Image:
                 id: image
                 size: image.size
+
+<DrawerWindow>:
+    title: "Main Menu"
+
+    # Side panel
+    BoxLayout:
+        orientation: "vertical"
+        Button:
+            text: "Button 1"
+        Button:
+            text: "Button 2"
+        Button:
+            text: "Button 3"
 
 
 <P>:

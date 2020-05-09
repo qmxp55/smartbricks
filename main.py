@@ -11,9 +11,9 @@ from brickcreator import SmartBricks
 import shutil
 from pathlib import Path
 from kivy.uix.popup import Popup
+from kivy.garden.navigationdrawer import NavigationDrawer
 from kivy.uix.button import Button
 import os
-
 
 class InitWindow(Screen):
     pass
@@ -125,6 +125,13 @@ class ResultWindow(Screen):
         #test = self.galleryid2.filechooser.selection[0]
         #print(self.lg.filechooser.selection[0])
         #print(test)
+
+    def show_drawer(self):
+        d = DrawerWindow()
+        d.toggle_state()
+
+class DrawerWindow(NavigationDrawer):
+    pass
 
 class P(Screen):
 
