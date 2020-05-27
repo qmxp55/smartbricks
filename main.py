@@ -1,155 +1,327 @@
-import kivy
-kivy.require('1.11.1')
-
-from kivy.app import App
-import numpy as np
-from kivy.uix.floatlayout import FloatLayout
 from kivy.lang import Builder
-from kivy.uix.screenmanager import ScreenManager, Screen
-from kivy.properties import ObjectProperty
-from brickcreator import SmartBricks
-import shutil
-from pathlib import Path
-from kivy.uix.popup import Popup
-from kivy.garden.navigationdrawer import NavigationDrawer
+from kivy.uix.boxlayout import BoxLayout
+from kivy.uix.gridlayout import GridLayout
+from kivy.properties import StringProperty
+from kivy.factory import Factory
+from kivy.properties import ListProperty, StringProperty, ObjectProperty
+from kivy.core.window import Window
 from kivy.uix.button import Button
+
+from kivymd.app import MDApp
+from kivymd.uix.filemanager import MDFileManager
+from kivymd.theming import ThemableBehavior
+from kivymd.uix.list import OneLineIconListItem, MDList
+from kivymd.toast import toast
+from kivymd.utils.cropimage import crop_image
+from kivymd.uix.imagelist import SmartTileWithLabel
+from kivymd.uix.button import MDFloatingActionButton, MDRoundFlatIconButton, MDIconButton, MDFillRoundFlatIconButton
+from kivymd.uix.bottomsheet import (
+    MDCustomBottomSheet,
+    MDGridBottomSheet,
+    MDListBottomSheet,
+)
+
 import os
+import numpy as np
+import pandas as pd
 
-class InitWindow(Screen):
+
+class ContentNavigationDrawer(BoxLayout):
     pass
 
-class NewWindow(Screen):
+class CustomSmartTileWithLabel(SmartTileWithLabel):
+    #stlab = ObjectProperty()
     pass
 
-class GalleryWindow(Screen):
+#class ContentCustomSheet(BoxLayout):
+#    pass
 
-    entry = ObjectProperty(None)
-
-    def selected(self,filename):
-        try:
-            self.ids.image.source = filename[0]
-            #self.ids.sel_image.text = filename[0]
-        except:
-            pass
-
-class LoadWindow(Screen):
-
-    filechooser = ObjectProperty(None)
-
-    #def selected(self,filename):
-    #    self.sel = str(filename[0])
-
-
-class SetupWindow(Screen):
-
-    galleryid = ObjectProperty(None)
-    sel_image = ObjectProperty(None)
-
-    #def __init__(self):
-
-
-    def on_enter(self, *args):
-        self.sel_image.text = self.galleryid.entry.text
-
-    def createBrick(self, imgpath, Ncolors, lowsize):
-
-        self.outdir_ = '/home/omar/myproj_out/tmp'
-        self.outdir = Path(self.outdir_)
-        if self.outdir.exists() & self.outdir.is_dir():
-            shutil.rmtree(self.outdir)
-
-        SB = SmartBricks(imgpath=imgpath, Ncolors=np.int(Ncolors), lowsize=np.int(lowsize), outdir=self.outdir_)
-        SB.saveProj()
-
-class ResultWindow(Screen):
-
-    image = ObjectProperty(None)
-    galleryid2 = ObjectProperty(None)
-    #lg = LoadWindow()
-    #print(lg.filechooser.selection[0])
-    #print(type(lg.filechooser.selection))
-    #if lg.filechooser.selection[0] is None: outdir_ = str(lg.filechooser.selection[0])
-
-    def on_enter(self, *args):
-        #print(outdir_)
-        #self.sw = SetupWindow()
-
-        #print(len(filesel))
-
-        try:
-            filesel = self.galleryid2.filechooser.selection[0]
-            self.outdir_ = filesel
-            self.ids.image.source = self.outdir_+'/'+'all'+'.jpeg'
-        except IndexError:
-            self.outdir_ = '/home/omar/myproj_out/tmp'
-            self.ids.image.source = self.outdir_+'/'+'all'+'.jpeg'
-
-        #self.save_btn2.bind(on_release=self.show_popup())
-
-    def show_popup(self):
-        self.show = P()
-        popup = Popup(title="save current project", content=self.show, size_hint=(None,None),size=(400,400))
-        popup.open()
-        #show_cancel = Button(text='Cancel', size_hint_y=None, height=40)
-        #show.add_widget(show_cancel)
-        #show_cancel.bind(on_release=popup.dismiss)
-        #print(show.pname.text)
-        #print(type(show.pname.text))
-
-        self.show.cancel_btn.bind(on_release=popup.dismiss)
-
-        #show_save = Button(text='SAVE', size_hint_y=None, height=40)
-        #self.show.add_widget(show_save)
-        self.show.save_btn.bind(on_press=self.pressed)
-        self.show.save_btn.bind(on_release=popup.dismiss)
-
-    def pressed(self, instance):
-
-        #print('IN SAVEPROJECT!!!!!!')
-        #if len(savedir) > 0:
-        dest = '/home/omar/myproj_out/'+self.show.pname.text
-        print(dest)
-        #os.makedirs(dest, exist_ok=True)
-        shutil.copytree(self.outdir_, dest)
-
-        #dest_ = '/home/omar/myproj_out/'+savedir
-        #dest = Path(dest_)
-        #if dest.exists() & dest.is_dir():
-        #    shutil.rmtree(dest)
-        #shutil.copytree(outdir_, dest_)
-        #outdir_ = dest_
-
-    #def show_name(self):
-
-        #self.lg = LoadWindow()
-        #test = self.galleryid2.filechooser.selection[0]
-        #print(self.lg.filechooser.selection[0])
-        #print(test)
-
-    def show_drawer(self):
-        d = DrawerWindow()
-        d.toggle_state()
-
-class DrawerWindow(NavigationDrawer):
+class ItemDrawer(OneLineIconListItem):
+    #icon = StringProperty()
+    #target = StringProperty()
     pass
 
-class P(Screen):
 
-    cancel_btn = ObjectProperty(None)
-    save_btn = ObjectProperty(None)
-    pname = ObjectProperty(None)
+class DrawerList(ThemableBehavior, MDList):
+    def set_color_item(self, instance_item):
+        """Called when tap on a menu item."""
 
-class WindowManager(ScreenManager):
-    pass
+        # Set the color of the icon and text for the menu item.
+        for item in self.children:
+            if item.text_color == self.theme_cls.primary_color:
+                item.text_color = self.theme_cls.text_color
+                break
+        instance_item.text_color = self.theme_cls.primary_color
 
-kv = Builder.load_file("smartbricks.kv")
+class CustomMDIconButton(MDFillRoundFlatIconButton):
 
-class SmartBricksApp(App):
+    #palette = ObjectProperty(None)
+
+    color = ListProperty()
+    text = StringProperty()
+    icon = StringProperty()
+    text_color = ListProperty()
+
+
+class SmartBricksApp(MDApp):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        Window.bind(on_keyboard=self.events)
+        self.manager_open = False
+        self.file_manager = MDFileManager(
+            exit_manager=self.exit_manager,
+            select_path=self.select_path,
+            previous=True,
+        )
+
     def build(self):
-        return kv
+        self.screen = Builder.load_file("main.kv")
+
+        return self.screen
+
+    custom_sheet = None
+    df = pd.read_csv('/home/omar/myproj/SmartBricks/legoKeys.cvs', sep='\t')
+    out_dir = '/home/omar/myproj_out/'
+
+    isdir = os.path.isdir(out_dir)
+    if isdir:
+        plist = os.listdir(out_dir)
+    else:
+        os.mkdir(out_dir)
+
+    def callback_for_menu_items(self, *args):
+        toast(args[0])
+
+    def openScreen(self, itemdrawer):
+        self.openScreenName(itemdrawer.target)
+        self.root.ids.nav_drawer.set_state("close")
+
+    def openScreenName(self, screenName):
+        self.root.ids.screen_manager.current = screenName
+
+    def ifproject(self):
+        if ((self.isdir) & (len(self.plist) > 0)):
+            self.openScreenName('projects')
+        else:
+            self.callback_for_menu_items('No projects saved yet. Select START to start a new project.')
+
+    def chooseproject(self, img_source):
+
+        #clear widgets if any previously load to avoid staking of color palettes between projects
+        self.root.ids.content_drawer.ids.md_list.clear_widgets()
+
+        self.root.ids.image.source = img_source
+        self.openScreenName('main')
+
+        self.img_path = os.path.dirname(img_source)
+        self.tab = np.load(self.img_path+'/table.npy')
+
+        for i in self.tab.T[0][:-1]:
+            if i == '0.0_0.0_0.0': continue
+            R,G,B = i.split("_")
+            R,G,B = [np.int(np.float(j)) for j in [R,G,B]]
+            mask = (self.df['R'] == R) & (self.df['G'] == G) & (self.df['B'] == B)
+            Nbrick, color_name = self.df['LEGO No.'][mask].item(), self.df['Color'][mask].item()
+            #print(R,G,B, Nbrick, color_name)
+
+            #
+            self.root.ids.content_drawer.ids.md_list.add_widget(
+                CustomMDIconButton(color=(R/256,G/256,B/256,1),
+                                   text=color_name,
+                                   text_color=(1,0,0,1),
+                                   icon='checkbox-blank-circle-outline'
+                                   ))
+
+        self.root.ids.content_drawer.ids.md_list.add_widget(
+                CustomMDIconButton(color=self.theme_cls.primary_color,
+                                   text='All',
+                                   icon='checkbox-blank-circle-outline',
+                                   #text_color=(R/256,G/256,B/256,1),
+                                   #icon='checkbox-marked-circle'
+                                   ))
+
+        self.root.ids.content_drawer.ids.md_list.add_widget(
+                CustomMDIconButton(color=self.theme_cls.primary_color,
+                                   text='Original',
+                                   icon=''
+                                   ))
+
+        keep = self.tab.T[0] == 'total'
+
+        b2x2 = self.root.ids.brick_2x2
+        b2x1 = self.root.ids.brick_2x1
+        b1x1 = self.root.ids.brick_1x1
+        for num, brick, brickLab in zip([1,2,3], [b2x2, b2x1, b1x1], ['2x2', '2x1', '1x1']):
+            brick.text = brickLab+': '+self.tab.T[num][keep][0]
 
 
-if __name__ == '__main__':
-    #if using a .kv file it has to be named as the main class i.e., SmartBricksApp then smartbricks.kv.o
+    def choose_palette(self, img_bg_color, text, id):
 
+        self.root.ids.palette_toolbar.md_bg_color = img_bg_color
+
+        self.img_path = os.path.dirname(self.root.ids.image.source)
+        R,G,B = np.float(img_bg_color[0]*256), np.float(img_bg_color[1]*256), np.float(img_bg_color[2]*256)
+        mean = np.mean([R,G,B])
+        #print(R,G,B)
+        if text not in ['All', 'Original']:
+            self.root.ids.image.source = self.img_path+'/%s_%s_%s.gif' %(str(R), str(G), str(B))
+        else:
+            self.root.ids.image.source = self.img_path+'/%s.jpeg' %(text.lower())
+
+        id.icon = 'checkbox-marked-circle'
+
+
+        #Get bricks counts
+        self.tab = np.load(self.img_path+'/table.npy')
+        if text not in ['All', 'Original']:
+            keep = self.tab.T[0] == '%s_%s_%s' %(str(R), str(G), str(B))
+        else:
+            keep = self.tab.T[0] == 'total'
+
+        b2x2 = self.root.ids.brick_2x2
+        b2x1 = self.root.ids.brick_2x1
+        b1x1 = self.root.ids.brick_1x1
+
+        if mean > 180:
+            test_color = [0,0,0,1] #black
+            invert = False
+        else:
+            test_color = [1,1,1,1] #withe
+            invert = True
+
+        id.text_color = test_color
+
+        for num, brick, brickLab in zip([1,2,3], [b2x2, b2x1, b1x1], ['2x2', '2x1', '1x1']):
+            brick.text = brickLab+': '+self.tab.T[num][keep][0]
+            brick.text_color=test_color
+            #print(brick.text_color)
+
+
+        b2x2_i = self.root.ids.brick_2x2_icon
+        b2x1_i = self.root.ids.brick_2x1_icon
+        b1x1_i = self.root.ids.brick_1x1_icon
+
+        for num, brick, brickLab in zip([1,2,3], [b2x2_i, b2x1_i, b1x1_i], ['2x2', '2x1', '1x1']):
+
+            if invert: brick.icon="/home/omar/myproj/SmartBricks/%s_invert.jpg" %(brickLab)
+            else: brick.icon="/home/omar/myproj/SmartBricks/%s.jpg" %(brickLab)
+
+        #self.root.ids.brick_2x2.text = '2x2: '+self.tab.T[1][keep][0]
+        #self.root.ids.brick_2x1.text = '2x1: '+self.tab.T[2][keep][0]
+        #self.root.ids.brick_1x1.text = '1x1: '+self.tab.T[3][keep][0]
+
+
+
+
+        #print(mean, test_color, self.root.ids.brick_2x2.text_color)
+        #self.root.ids.brick_2x2.text_color=test_color
+
+        #if invert: self.root.ids.brick_2x2_icon.icon="/home/omar/myproj/SmartBricks/2x2_invert.jpg"
+        #else: self.root.ids.brick_2x2_icon.icon="/home/omar/myproj/SmartBricks/2x2.jpg"
+        #print(self.root.ids.brick_2x2.text_color)
+
+
+
+
+    #def test(self, R, G, B):
+    #    return R,G,B,1
+
+
+    def on_start(self):
+
+        if ((self.isdir) & (len(self.plist) > 0)):
+            for dir in self.plist:
+                self.root.ids.grid_list.add_widget(
+                    CustomSmartTileWithLabel(source = self.out_dir+dir+'/all.jpeg',
+                                             text = "[size=32]%s[/size]" %(dir))
+                )
+
+            #print(self.custbutt.palette.md_bg_color)
+
+            #self.root.ids.content_drawer.ids.palette.md_bg_color = (i/100,i/10,0,1)
+            #md_bg_color=(1,0,0,1)
+
+            #
+
+#        self.root.ids.content_drawer.ids.md_list.add_widget(
+#            ItemDrawer(target="screen1", text="Screen 1",
+#                       icon="home-circle-outline",
+#                       on_release=self.openScreen)
+#        )
+#        self.root.ids.content_drawer.ids.md_list.add_widget(
+#            ItemDrawer(target="screen2", text="Screen 2",
+#                       icon="settings-outline",
+#                       on_release=self.openScreen)
+#        )
+
+
+    def custom_bottom_sheet(self):
+        self.custom_sheet = MDCustomBottomSheet(screen=Factory.ContentCustomSheet())
+        self.custom_sheet.open()
+
+    def file_manager_open(self):
+        self.file_manager.show('/home/omar/Pictures')  # output manager to the screen
+        self.manager_open = True
+
+    def select_path(self, path):
+        '''It will be called when you click on the file name
+        or the catalog selection button.
+
+        :type path: str;
+        :param path: path to the selected directory or file;
+        '''
+
+        self.exit_manager()
+        self.openScreenName('setup')
+        self.root.ids.setup_image.source = path
+        toast(path)
+
+    def test2(self):
+        print(self.root.ids.setup_image.source)
+
+    def exit_manager(self, *args):
+        '''Called when the user reaches the root of the directory tree.'''
+
+        self.manager_open = False
+        self.file_manager.close()
+
+    def events(self, instance, keyboard, keycode, text, modifiers):
+        '''Called when buttons are pressed on the mobile device.'''
+
+        if keyboard in (1001, 27):
+            if self.manager_open:
+                self.file_manager.back()
+        return True
+
+
+'''
+
+    def crop_image_for_tile(self, instance, size, path_to_crop_image):
+        if not os.path.exists(os.path.join(self.directory, path_to_crop_image)):
+            size = (int(size[0]), int(size[1]))
+            path_to_origin_image = path_to_crop_image.replace("_tile_crop", "")
+            crop_image(size, path_to_origin_image, path_to_crop_image)
+        instance.source = path_to_crop_image
+
+
+    def show_example_bottom_sheet(self):
+        bs_menu = MDListBottomSheet()
+        bs_menu.add_item(
+            "Select Image from", lambda x: self.callback_for_menu_items("Here's an item with an icon"))
+        bs_menu.add_item(
+            "CAMERA",
+            lambda x: self.callback_for_menu_items("Here's an item with an icon"),
+            icon="clipboard-account",
+        )
+        bs_menu.add_item(
+            "GALLERY",
+            lambda x: self.openScreenName('screen3'),
+            icon="nfc",
+        )
+        bs_menu.open()
+'''
+
+
+if __name__ == "__main__":
     SmartBricksApp().run()

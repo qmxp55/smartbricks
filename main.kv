@@ -1,0 +1,290 @@
+#NavigationLayout:
+<ItemDrawer>:
+#    theme_text_color: "Custom"
+#    on_release:
+#        self.parent.set_color_item(self)
+
+#    IconLeftWidget:
+#        id: icon
+#        icon: root.icon
+#        theme_text_color: "Custom"
+#        text_color: root.text_color
+
+<CustomSmartTileWithLabel@SmartTileWithLabel>:
+    id: stlab
+    on_press: app.chooseproject(stlab.source)
+    #on_press: root.image.source = stlab.source
+    #on_release: app.openScreenName('main')
+
+#<CustomMDIconButton@MDFloatingActionButton>:
+<CustomMDIconButton@DFillRoundFlatIconButton>:
+
+    #theme_text_color: "Custom"
+
+    MDFillRoundFlatIconButton:
+
+        id: palette
+        #icon: "check"
+        icon: root.icon
+        text: root.text
+        md_bg_color: root.color
+        opposite_text_color: True
+        #theme_text_color: "Custom"
+        #text_color: root.text_color
+
+        #on_release: print(palette.md_bg_color)
+        on_press: app.callback_for_menu_items('%s selected' %(palette.text))
+        on_release: app.choose_palette(palette.md_bg_color, palette.text, palette)
+
+
+
+<ContentNavigationDrawer>:
+    orientation: "vertical"
+    padding: "8dp"
+    spacing: "8dp"
+
+    #AnchorLayout:
+    #    anchor_x: "left"
+    #    size_hint_y: None
+        #height: avatar.height
+
+        #Image:
+        #    id: avatar
+            #size_hint: None, None
+            #size: "56dp", "56dp"
+            #source: "data/logo/kivy-icon-256.png"
+            #source: "KivyMD/demos/kitchen_sink/assets/african-lion-951778_1280.png"
+
+    MDToolbar:
+        title: "Select Color"
+        #font_style: "Button"
+        #size_hint_y: None
+        #height: self.texture_size[1]
+        #bold: True
+
+    #MDLabel:
+    #    text: "KivyMD Nav Drawer and Screen Manager"
+    #    font_style: "Caption"
+    #    size_hint_y: None
+    #    height: self.texture_size[1]
+
+    ScrollView:
+
+        #GridLayout:
+        #    id: palette
+        #    cols: 2
+
+        DrawerList:
+            cols: 1
+            height: dp(100)
+            spacing: "10dp"
+            padding: dp(10)
+            width: dp(600)
+            id: md_list
+
+<ItemForCustomBottomSheet@OneLineIconListItem>
+
+    #on_release: app.openScreenName('projects')
+    #on_press: app.custom_sheet.dismiss()
+    icon: ""
+    IconLeftWidget:
+        icon: root.icon
+
+<ContentCustomSheet@BoxLayout>:
+
+    orientation: "vertical"
+    size_hint_y: None
+    height: "400dp"
+
+    MDToolbar:
+        title: 'Select Image from:'
+
+    ScrollView:
+        MDGridLayout:
+            cols: 1
+            adaptive_height: True
+
+            ItemForCustomBottomSheet:
+                icon: "camera"
+                text: "CAMERA"
+                on_release: app.openScreenName('projects')
+                on_release: app.custom_sheet.dismiss()
+
+            ItemForCustomBottomSheet:
+                icon: "file-image-outline"
+                text: "GALLERY"
+                #on_release: app.openScreenName('projects')
+                on_release: app.file_manager_open()
+                on_release: app.custom_sheet.dismiss()
+
+<MySmartTileWithLabel@SmartTileWithLabel>:
+    mipmap: True
+    font_style: "Subhead"
+
+Screen:
+    id: scr
+    NavigationLayout:
+
+        ScreenManager:
+            id: screen_manager
+            Screen:
+                name: "screen1"
+                BoxLayout:
+                    orientation: 'vertical'
+                    padding: dp(10)
+                    size_hint: None, None
+                    size: self.minimum_size
+                    spacing: dp(10)
+                    pos_hint: {"center_x": .5}
+
+                    Image:
+                        id: avatar
+                        size_hint: None, None
+                        size: "1000dp", "1000dp"
+                        #source: "data/logo/kivy-icon-256.png"
+                        source: "KivyMD/demos/kitchen_sink/assets/african-lion-951778_1280.png"
+
+                    MDFillRoundFlatButton:
+                        text: "START"
+                        pos_hint: {"center_x": .5}
+                        #callback: lambda: app.show_example_bottom_sheet()
+                        on_release: app.custom_bottom_sheet()
+
+
+                    MDFillRoundFlatButton:
+                        text: "PROJECTS"
+                        pos_hint: {"center_x": .5}
+                        #on_release: screen_manager.current = 'projects'
+                        on_release: app.ifproject()
+
+                    #Widget:
+
+
+            Screen:
+                name: "projects"
+                BoxLayout:
+                    orientation: 'vertical'
+
+                    MDToolbar:
+                        title: "Current Projects"
+                        md_bg_color: app.theme_cls.primary_color
+                        left_action_items: [['arrow-left', lambda x: app.openScreenName('screen1')]]
+
+                    ScrollView:
+                        do_scroll_x: False
+
+                        GridLayout:
+
+                            id: grid_list
+                            cols: 2
+                            row_default_height: (self.width - self.cols*self.spacing[0])/self.cols
+                            row_force_default: True
+                            adaptive_height: True
+                            size_hint_y: None
+                            height: self.minimum_height
+                            padding: dp(4), dp(4)
+                            spacing: dp(4)
+
+            Screen:
+
+                name: 'main'
+
+                BoxLayout:
+                    orientation: 'vertical'
+
+                    MDToolbar:
+                        title: "Mosaic Brick"
+                        md_bg_color: app.theme_cls.primary_color
+                        left_action_items: [['arrow-left', lambda x: app.openScreenName('screen1')]]
+                        right_action_items: [['share-variant', lambda x: app.callback_for_menu_items('Share buttom')], ['pencil', lambda x: app.callback_for_menu_items('Share buttom')], ['toy-brick-search', lambda x: app.callback_for_menu_items('Share buttom')], ['palette', lambda x: nav_drawer.set_state("toggle")]]
+                        #right_action_items: [["dots-vertical", lambda x: app.callback_1()], ["clock", lambda x: app.callback_2()]]
+
+                    Image:
+
+                        id: image
+                        #source: '/home/omar/myproj_out/gorky/87.0_88.0_87.0.gif'
+
+                    MDToolbar:
+                        id: palette_toolbar
+                        #elevation: 20
+
+
+                        #BoxLayout:
+                        #    id: bricks_info
+                        #    orientation: 'horizontal'
+
+                        BoxLayout:
+                            orientation: 'vertical'
+                            #height: "300dp"
+                            #halign: 'center'
+
+
+
+                            MDIconButton:
+                                id: brick_2x2_icon
+                                icon: "/home/omar/myproj/SmartBricks/2x2_invert.jpg"
+                                #icon_color: 1, 0, 0, 1
+                                #height: "42dp"
+                                #pos_hint: {"center_x": .5}
+
+                            MDLabel:
+                                id: brick_2x2
+                                theme_text_color: "Custom"
+                                text_color: (1,1,1,1)
+
+
+                        BoxLayout:
+                            orientation: 'vertical'
+
+                            MDIconButton:
+                                id: brick_2x1_icon
+                                icon: "/home/omar/myproj/SmartBricks/2x1_invert.jpg"
+
+                            MDLabel:
+                                id: brick_2x1
+                                theme_text_color: "Custom"
+                                text_color: (1,1,1,1)
+                                #halign: 'center'
+
+                        BoxLayout:
+                            orientation: 'vertical'
+
+                            MDIconButton:
+                                id: brick_1x1_icon
+                                icon: "/home/omar/myproj/SmartBricks/1x1_invert.jpg"
+
+                            MDLabel:
+                                id: brick_1x1
+                                theme_text_color: "Custom"
+                                text_color: (1,1,1,1)
+                                #halign: 'center'
+
+            Screen:
+                name: "setup"
+                BoxLayout:
+                    orientation: 'vertical'
+
+                    MDToolbar:
+                        title: "Set Up"
+                        md_bg_color: app.theme_cls.primary_color
+                        left_action_items: [['arrow-left', lambda x: app.openScreenName('screen1')]]
+
+                    Image:
+                        id: setup_image
+
+                    MDFillRoundFlatIconButton:
+                        text: 'TEST'
+                        on_press: app.test2()
+
+
+
+                    #Widget:
+
+        MDNavigationDrawer:
+            id: nav_drawer
+
+            ContentNavigationDrawer:
+                id: content_drawer
+
+
+
