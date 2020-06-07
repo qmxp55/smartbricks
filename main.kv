@@ -36,6 +36,18 @@
         on_press: app.callback_for_menu_items('%s selected' %(palette.text))
         on_release: app.choose_palette(palette.md_bg_color, palette.text, palette)
 
+<CustomMDChip>:
+
+    #MDChip:
+
+    id: mosaic_size_i
+    label: root.label
+    icon: root.icon
+    #check: 'True'
+    #callback: app.callback_mosaic_size
+    callback: root.cb
+    selected_chip_color: .21176470535294, .098039627451, 1, 1
+
 
 
 <ContentNavigationDrawer>:
@@ -262,6 +274,7 @@ Screen:
             Screen:
                 name: "setup"
                 BoxLayout:
+                    spacing: dp(10)
                     orientation: 'vertical'
 
                     MDToolbar:
@@ -272,9 +285,56 @@ Screen:
                     Image:
                         id: setup_image
 
-                    MDFillRoundFlatIconButton:
-                        text: 'TEST'
-                        on_press: app.test2()
+                    ScrollView:
+
+                        GridLayout:
+                            padding: dp(10)
+                            spacing: dp(10)
+                            cols: 1
+                            size_hint_y: None
+                            height: self.minimum_height
+
+                            Widget:
+                                size_hint_y: None
+                                height: dp(20)
+
+                            MDLabel:
+                                text: "Choose minimum size of mosaic:"
+                                font_style: 'H6'
+
+                            MDSeparator:
+
+                            MDChooseChip:
+                                id: mosaic_size
+
+                            Widget:
+                                size_hint_y: None
+                                height: dp(20)
+
+                            MDLabel:
+                                text: "Choose mosaic number of colors:"
+                                font_style: 'H6'
+
+                            MDSeparator:
+
+                            MDChooseChip:
+                                id: mosaic_colors
+
+                            Widget:
+                                size_hint_y: None
+                                height: dp(20)
+
+                            MDTextField:
+                                id: project_name
+                                hint_text: "Project Name"
+                                helper_text: "name the project to be saved. Use no spaces or special characters"
+                                required: True
+                                helper_text_mode: "on_focus"
+
+                            MDFillRoundFlatButton:
+                                text: "CREATE MOSAIC"
+                                pos_hint: {"center_x": .5}
+                                on_release: app.create_mosaic()
 
 
 

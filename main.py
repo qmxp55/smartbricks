@@ -14,7 +14,9 @@ from kivymd.uix.list import OneLineIconListItem, MDList
 from kivymd.toast import toast
 from kivymd.utils.cropimage import crop_image
 from kivymd.uix.imagelist import SmartTileWithLabel
-from kivymd.uix.button import MDFloatingActionButton, MDRoundFlatIconButton, MDIconButton, MDFillRoundFlatIconButton
+from kivymd.uix.button import MDFloatingActionButton, MDRoundFlatIconButton, MDIconButton, MDFillRoundFlatIconButton, MDFlatButton
+from kivymd.uix.chip import MDChip, MDChooseChip
+from kivymd.uix.dialog import MDDialog
 from kivymd.uix.bottomsheet import (
     MDCustomBottomSheet,
     MDGridBottomSheet,
@@ -24,6 +26,8 @@ from kivymd.uix.bottomsheet import (
 import os
 import numpy as np
 import pandas as pd
+
+from brickcreator import SmartBricks
 
 
 class ContentNavigationDrawer(BoxLayout):
@@ -62,6 +66,12 @@ class CustomMDIconButton(MDFillRoundFlatIconButton):
     icon = StringProperty()
     text_color = ListProperty()
 
+class CustomMDChip(MDChip):
+
+    label = StringProperty()
+    cb = ObjectProperty(None)
+    icon = StringProperty()
+
 
 class SmartBricksApp(MDApp):
 
@@ -89,6 +99,7 @@ class SmartBricksApp(MDApp):
         plist = os.listdir(out_dir)
     else:
         os.mkdir(out_dir)
+        plist = None
 
     def callback_for_menu_items(self, *args):
         toast(args[0])
@@ -227,8 +238,93 @@ class SmartBricksApp(MDApp):
     #def test(self, R, G, B):
     #    return R,G,B,1
 
+    def callback_mosaic_size(self, instance, value):
+        toast('mosaic size: %s' %(value))
+        self.mosaic_size_val = value
+
+    def callback_mosaic_color(self, instance, value):
+        toast('mosaic colors: %s' %(value))
+        self.mosaic_color_val = value
+
+    def callback_mosaic_name(self, instance, value):
+        toast('mosaic name: %s' %(value))
+        self.mosaic_name = value
+
+    def show_alert_dialog(self, name):
+            if not self.dialog:
+                self.dialog = MDDialog(
+                    text="Project %s already exist. Do you want to replace existing project?" %(self.root.ids.project_name.text),
+                    buttons=[
+                        MDFlatButton(
+                            text="CANCEL", text_color=self.theme_cls.primary_color, on_press=lambda x:self.dialog.dismiss()
+                        ),
+                        MDFlatButton(
+                            text="ACCEPT", text_color=self.theme_cls.primary_color, on_press=lambda x:self.run_mosaic(imgpath=self.root.ids.setup_image.source, Ncolors=int(self.mosaic_color_val), lowsize=int(self.mosaic_size_val),
+                            outdir=out_dir + self.root.ids.project_name.text)
+                        ),
+                    ],
+                )
+            self.dialog.open()
+
+    def create_mosaic(self):
+
+        if (self.mosaic_size_val is None) or (self.mosaic_color_val is None):
+            toast('Choose mosaic size and colors first')
+        else:
+            #print(self.root.ids.setup_image.source)
+            #print(int(self.mosaic_size_val))
+            #print(int(self.mosaic_color_val))
+            #print(self.root.ids.project_name.text)
+            #print(self.out_dir+self.root.ids.project_name.text)
+
+            imgpath = self.root.ids.setup_image.source
+            Ncolors = int(self.mosaic_color_val)
+            lowsize = int(self.mosaic_size_val)
+            outdir = (self.out_dir + self.root.ids.project_name.text)
+
+            for i in [imgpath, Ncolors, lowsize, outdir]:
+                print(i, type(i))
+
+        if self.plist is not None:
+            if self.root.ids.project_name.text in self.plist:
+                print('project name already exist...')
+                self.show_alert_dialog(self.root.ids.project_name.text)
+        else:
+            #self.run_mosaic(imgpath=self.root.ids.setup_image.source, Ncolors=int(self.mosaic_color_val), lowsize=int(self.mosaic_size_val),
+            #                outdir=out_dir + self.root.ids.project_name.text)
+
+            SB2 = SmartBricks(imgpath=imgpath, Ncolors=Ncolors, lowsize=lowsize, outdir=outdir)
+            SB2.saveProj()
+
+
+
+    def run_mosaic(self, imgpath=None, Ncolors=None, lowsize=None, outdir=None):
+
+        print(imgpath, Ncolors, lowsize, outdir)
+
+        SB = SmartBricks(imgpath=imgpath, Ncolors=Ncolors, lowsize=lowsize,
+                             outdir=outdir)
+        SB.saveProj()
+
+        #self.chooseproject(outdir+'/all.jpeg')
+
+
+
 
     def on_start(self):
+
+        self.mosaic_size_val = None
+        self.mosaic_color_val = None
+        self.mosaic_name = None
+        self.dialog = None
+
+        for i in np.arange(8,72,8):
+            self.root.ids.mosaic_size.add_widget(
+                    CustomMDChip(label=str(i), cb=self.callback_mosaic_size, icon='grid'))
+
+        for i in np.arange(2,18,2):
+            self.root.ids.mosaic_colors.add_widget(
+                    CustomMDChip(label=str(i), cb=self.callback_mosaic_color, icon='palette'))
 
         if ((self.isdir) & (len(self.plist) > 0)):
             for dir in self.plist:
@@ -276,9 +372,6 @@ class SmartBricksApp(MDApp):
         self.openScreenName('setup')
         self.root.ids.setup_image.source = path
         toast(path)
-
-    def test2(self):
-        print(self.root.ids.setup_image.source)
 
     def exit_manager(self, *args):
         '''Called when the user reaches the root of the directory tree.'''
