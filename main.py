@@ -17,6 +17,7 @@ from kivymd.uix.imagelist import SmartTileWithLabel
 from kivymd.uix.button import MDFloatingActionButton, MDRoundFlatIconButton, MDIconButton, MDFillRoundFlatIconButton, MDFlatButton
 from kivymd.uix.chip import MDChip, MDChooseChip
 from kivymd.uix.dialog import MDDialog
+from kivymd.uix.spinner import MDSpinner
 from kivymd.uix.bottomsheet import (
     MDCustomBottomSheet,
     MDGridBottomSheet,
@@ -250,17 +251,16 @@ class SmartBricksApp(MDApp):
         toast('mosaic name: %s' %(value))
         self.mosaic_name = value
 
-    def show_alert_dialog(self, name):
+    def show_alert_dialog(self, name=None, imgpath=None, Ncolors=None, lowsize=None, outdir=None):
             if not self.dialog:
                 self.dialog = MDDialog(
-                    text="Project %s already exist. Do you want to replace existing project?" %(self.root.ids.project_name.text),
+                    text="Project %s already exist. Do you want to replace existing project?" %(name),
                     buttons=[
                         MDFlatButton(
                             text="CANCEL", text_color=self.theme_cls.primary_color, on_press=lambda x:self.dialog.dismiss()
                         ),
                         MDFlatButton(
-                            text="ACCEPT", text_color=self.theme_cls.primary_color, on_press=lambda x:self.run_mosaic(imgpath=self.root.ids.setup_image.source, Ncolors=int(self.mosaic_color_val), lowsize=int(self.mosaic_size_val),
-                            outdir=out_dir + self.root.ids.project_name.text)
+                            text="ACCEPT", text_color=self.theme_cls.primary_color, on_press=lambda x:self.run_mosaic(imgpath=imgpath, Ncolors=Ncolors, lowsize=lowsize, outdir=outdir)
                         ),
                     ],
                 )
@@ -277,36 +277,38 @@ class SmartBricksApp(MDApp):
             #print(self.root.ids.project_name.text)
             #print(self.out_dir+self.root.ids.project_name.text)
 
-            imgpath = self.root.ids.setup_image.source
-            Ncolors = int(self.mosaic_color_val)
-            lowsize = int(self.mosaic_size_val)
-            outdir = (self.out_dir + self.root.ids.project_name.text)
+            imgpath = str(self.root.ids.setup_image.source)
+            Ncolors = np.int(self.mosaic_color_val)
+            lowsize = np.int(self.mosaic_size_val)
+            outdir = str(self.out_dir + self.root.ids.project_name.text)
 
             for i in [imgpath, Ncolors, lowsize, outdir]:
                 print(i, type(i))
 
-        if self.plist is not None:
-            if self.root.ids.project_name.text in self.plist:
-                print('project name already exist...')
-                self.show_alert_dialog(self.root.ids.project_name.text)
-        else:
-            #self.run_mosaic(imgpath=self.root.ids.setup_image.source, Ncolors=int(self.mosaic_color_val), lowsize=int(self.mosaic_size_val),
-            #                outdir=out_dir + self.root.ids.project_name.text)
+        if (self.plist is not None) & (self.root.ids.project_name.text in self.plist):
 
-            SB2 = SmartBricks(imgpath=imgpath, Ncolors=Ncolors, lowsize=lowsize, outdir=outdir)
-            SB2.saveProj()
+            print('project name already exist...')
+            self.show_alert_dialog(name=self.root.ids.project_name.text, imgpath=imgpath, Ncolors=Ncolors, lowsize=lowsize, outdir=outdir)
+
+        else:
+            self.run_mosaic(imgpath=imgpath, Ncolors=Ncolors, lowsize=lowsize, outdir=outdir)
+            #print('HERE!!!!!!!')
+            #SB = SmartBricks(imgpath=imgpath, Ncolors=Ncolors, lowsize=lowsize, outdir=outdir)
+            #SB.saveProj()
 
 
 
     def run_mosaic(self, imgpath=None, Ncolors=None, lowsize=None, outdir=None):
 
-        print(imgpath, Ncolors, lowsize, outdir)
+        #print(imgpath, Ncolors, lowsize, outdir)
+        #if self.dialog:
+        #    self.dialog.dismiss()
 
         SB = SmartBricks(imgpath=imgpath, Ncolors=Ncolors, lowsize=lowsize,
                              outdir=outdir)
         SB.saveProj()
 
-        #self.chooseproject(outdir+'/all.jpeg')
+        self.chooseproject(outdir+'/all.jpeg')
 
 
 
