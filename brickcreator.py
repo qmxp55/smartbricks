@@ -16,6 +16,7 @@ import matplotlib.animation as animation
 import os
 from os import path
 from random import shuffle
+from tqdm import tqdm
 
 from scipy.cluster.vq import kmeans
 
@@ -28,12 +29,14 @@ class SmartBricks:
 
     def __init__(self, imgpath=None, Ncolors=None, lowsize=None, outdir=None):
 
-        #self.imgpath = imgpath
+        self.imgpath = imgpath
         self.Ncolors = Ncolors
         self.lowsize = lowsize
         self.outdir = outdir
+        self.size = (600 - (lowsize*400/64)) if lowsize > 24 else 550
+        #self.loader = loader
         #self.fig = plt.figure(figsize=(20,20))
-        img = imageio.imread(imgpath)
+        img = imageio.imread(self.imgpath)
 
         #height & width of image
         h, w = img.shape[0:2]
@@ -218,9 +221,11 @@ class SmartBricks:
                 brickGrid.append([i, j])
         brickGrid = np.array(brickGrid).T
 
-        plt.scatter(brickGrid[0], brickGrid[1], s=15, c='w', alpha=0.2)
-        plt.xticks(np.arange(0, w, 5))
-        plt.yticks(np.arange(0, h, 5))
+        #plt.scatter(brickGrid[0], brickGrid[1], s=250, c='w', alpha=0.3)
+        plt.scatter(brickGrid[0], brickGrid[1], s=self.size, facecolors='w', edgecolors='k', lw=3, alpha=0.2)
+
+        plt.xticks(np.arange(0, w, 5), fontsize=60)
+        plt.yticks(np.arange(0, h, 5), fontsize=60)
 
         return brickGrid
 
@@ -515,6 +520,8 @@ class SmartBricks:
         ims = []
         betas = np.linspace(0, 150, 2)
         ax = fig.add_subplot(111)
+        #ax.axis('off')
+        fig.subplots_adjust(left=0.05, bottom=0.05, right=1, top=1, wspace=None, hspace=None)
         #fig = plt.figure(figsize=(20,20))
         #ax = plt.gca()
 
@@ -558,7 +565,7 @@ class SmartBricks:
 
 
         #fig0 = fig
-        fig = plt.figure(figsize=(20,20))
+        fig = plt.figure(figsize=(30,30))
         ax = plt.gca()
 
         self.bricksCanvas(img=self.img, fig=fig, ax=ax, RGB=None, res2x2=self.res2x2, res2x1=self.res2x1, res1x1=self.res1x1)
@@ -570,11 +577,16 @@ class SmartBricks:
         palette_flat = self.imgFlat(paletteLego)
 
         table = []
-        for pal in palette_flat:
+        #for num, pal in enumerate(palette_flat):
+        for i in tqdm(range(len(palette_flat))):
+
+            pal = palette_flat[i]
             N2x2, N2x1, N1x1 = self.makeGiff(img=self.img, RGB=pal, idxs=[self.res2x2[2], self.res2x1[2], self.res1x1[2]], pathdir=self.outdir, fig=figcvs)
             r,g,b = pal
             color = '%s_%s_%s' %(r,g,b)
             table.append([color, N2x2, N2x1, N1x1])
+            self.loader = i
+
         t = np.array(table)
         N2x2total = np.sum(t[:,1].astype(int))
         N2x1total = np.sum(t[:,2].astype(int))
