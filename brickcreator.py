@@ -2,14 +2,13 @@
 import scipy as sp
 import numpy as np
 import matplotlib.pyplot as plt
-import time
+#import time
 import imageio
-from sklearn import cluster, datasets
+
 from sklearn.cluster  import KMeans
-from sklearn.datasets import load_digits
-from sklearn.preprocessing import StandardScaler
-from sklearn.decomposition import PCA
-from skimage import transform,io
+
+from skimage import transform
+#from scikit-image import transform
 from sklearn.neighbors import NearestNeighbors
 import pandas as pd
 import matplotlib.animation as animation
@@ -18,12 +17,12 @@ from os import path
 from random import shuffle
 from tqdm import tqdm
 
-from scipy.cluster.vq import kmeans
+#from scipy.cluster.vq import kmeans
 
-from IPython.display  import Image as display_image
+#from IPython.display  import Image as display_image
 
-import warnings
-warnings.filterwarnings("ignore")
+#import warnings
+#warnings.filterwarnings("ignore")
 
 class SmartBricks:
 
@@ -559,7 +558,7 @@ class SmartBricks:
 
     def saveProj(self):
 
-        start = time.time()
+        #start = time.time()
         ispathdir = os.path.isdir(self.outdir)
         if not ispathdir: os.makedirs(self.outdir, exist_ok=True)
 
@@ -607,5 +606,5 @@ class SmartBricks:
 
         np.save('%s/table' %(self.outdir), table)
 
-        end = time.time()
-        print('Total run time: %f sec' %(end - start))
+        #end = time.time()
+        #print('Total run time: %f sec' %(end - start))

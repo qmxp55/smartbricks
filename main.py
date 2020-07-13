@@ -1,13 +1,10 @@
+#
 from kivy.lang import Builder
 from kivy.uix.boxlayout import BoxLayout
-from kivy.uix.gridlayout import GridLayout
-from kivy.properties import StringProperty
 from kivy.factory import Factory
 from kivy.properties import ListProperty, StringProperty, ObjectProperty, NumericProperty
 from kivy.core.window import Window
 from kivy.clock import Clock
-from kivy.uix.button import Button
-from kivy.uix.popup import Popup
 from kivy.uix.progressbar import ProgressBar
 from kivy.metrics import dp
 
@@ -17,20 +14,12 @@ from kivymd.uix.filemanager import MDFileManager
 from kivymd.theming import ThemableBehavior
 from kivymd.uix.list import OneLineIconListItem, MDList
 from kivymd.toast import toast
-from kivymd.utils.cropimage import crop_image
 from kivymd.uix.imagelist import SmartTileWithLabel
 from kivymd.uix.button import MDFloatingActionButton, MDRoundFlatIconButton, MDIconButton, MDFillRoundFlatIconButton, MDFlatButton
 from kivymd.uix.chip import MDChip, MDChooseChip
 from kivymd.uix.dialog import MDDialog
-from kivymd.uix.progressloader import MDProgressLoader
-from kivymd.uix.spinner import MDSpinner
-from kivymd.uix.selectioncontrol import MDCheckbox
 from kivymd.uix.datatables import MDDataTable
-from kivymd.uix.bottomsheet import (
-    MDCustomBottomSheet,
-    MDGridBottomSheet,
-    MDListBottomSheet,
-)
+from kivymd.uix.bottomsheet import MDCustomBottomSheet, MDGridBottomSheet, MDListBottomSheet
 
 import os
 import numpy as np
@@ -260,8 +249,8 @@ class SmartBricksApp(MDApp):
 
         for num, brick, brickLab in zip([1,2,3], [b2x2_i, b2x1_i, b1x1_i], ['2x2', '2x1', '1x1']):
 
-            if invert: brick.icon="/home/omar/myproj/SmartBricks/%s_invert.jpg" %(brickLab)
-            else: brick.icon="/home/omar/myproj/SmartBricks/%s.jpg" %(brickLab)
+            if invert: brick.icon="/home/omar/myproj/SmartBricks/images/%s_invert.jpg" %(brickLab)
+            else: brick.icon="/home/omar/myproj/SmartBricks/images/%s.jpg" %(brickLab)
 
         #self.root.ids.brick_2x2.text = '2x2: '+self.tab.T[1][keep][0]
         #self.root.ids.brick_2x1.text = '2x1: '+self.tab.T[2][keep][0]
