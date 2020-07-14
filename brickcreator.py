@@ -1,15 +1,14 @@
 #
-import scipy as sp
+#import scipy as sp
 import numpy as np
 import matplotlib.pyplot as plt
 #import time
 import imageio
 
 from sklearn.cluster  import KMeans
+from sklearn.neighbors import NearestNeighbors
 
 from skimage import transform
-#from scikit-image import transform
-from sklearn.neighbors import NearestNeighbors
 import pandas as pd
 import matplotlib.animation as animation
 import os
@@ -54,7 +53,7 @@ class SmartBricks:
 
     def imgFlat(self, img):
 
-        img_flat = sp.reshape(img, (img.shape[0]*img.shape[1],img.shape[2])).astype(float)
+        img_flat = np.reshape(img, (img.shape[0]*img.shape[1],img.shape[2])).astype(float)
 
         return img_flat
 
@@ -70,27 +69,27 @@ class SmartBricks:
         img0 = transform.resize(img, size)
 
         #Recover normal RGB values
-        img_flat = sp.reshape(img0, (img0.shape[0]*img0.shape[1], img0.shape[2])).astype(float)
+        img_flat = np.reshape(img0, (img0.shape[0]*img0.shape[1], img0.shape[2])).astype(float)
         new_img = np.ones(img_flat.shape, dtype='float64')
         for i in [0,1,2]:
             new_img[:,i] = img_flat[:,i]*256
 
         new_img = np.array(new_img, dtype=('uint8'))
-        new_img = sp.reshape(new_img.flatten(), (img0.shape[0], img0.shape[1], img0.shape[2]))
+        new_img = np.reshape(new_img.flatten(), (img0.shape[0], img0.shape[1], img0.shape[2]))
 
         return new_img
 
     def kmeans(self, img):
 
         img0 = img[:, :, :3]
-        img_flat = sp.reshape(img0, (img0.shape[0]*img0.shape[1],img0.shape[2])).astype(float)
+        img_flat = np.reshape(img0, (img0.shape[0]*img0.shape[1],img0.shape[2])).astype(float)
 
         # K-means in sklearn.
         clf = KMeans(n_clusters = self.Ncolors, init='k-means++')
         clf.fit(img_flat.astype(float))
         indices= clf.predict(img_flat)
 
-        kmeans_img = sp.reshape(indices, (img0.shape[0], img0.shape[1]))
+        kmeans_img = np.reshape(indices, (img0.shape[0], img0.shape[1]))
 
         return kmeans_img, indices
 
@@ -98,7 +97,7 @@ class SmartBricks:
 
         #img0 = img[:, :, :3]
         img0 = img
-        img_flat = sp.reshape(img0, (img0.shape[0]*img0.shape[1],img0.shape[2])).astype(float)
+        img_flat = np.reshape(img0, (img0.shape[0]*img0.shape[1],img0.shape[2])).astype(float)
 
         kmeans_img, indices = self.kmeans(img)
 
@@ -124,7 +123,7 @@ class SmartBricks:
 
         indices_new = np.array(indices_new, dtype=('uint8'))
         print(indices_new.shape)
-        new_img = sp.reshape(indices_new.flatten(), (img0.shape[0], img0.shape[1], img0.shape[2]))
+        new_img = np.reshape(indices_new.flatten(), (img0.shape[0], img0.shape[1], img0.shape[2]))
 
         return new_img, indices_new
 
@@ -155,13 +154,13 @@ class SmartBricks:
         img_lego = legoColors[indices[:,index]]
         #print('Founf lego colors: \t %.1f' %(len(set(img_lego[:,0]))))
         img_lego = np.array(img_lego, dtype=('uint8'))
-        img_lego = sp.reshape(img_lego, (img.shape[0], img.shape[1], img.shape[2]))
+        img_lego = np.reshape(img_lego, (img.shape[0], img.shape[1], img.shape[2]))
 
         return img_lego
 
     def palette(self, img=None):
 
-        img_flat = sp.reshape(img, (img.shape[0]*img.shape[1],img.shape[2])).astype(float)
+        img_flat = np.reshape(img, (img.shape[0]*img.shape[1],img.shape[2])).astype(float)
 
         Nlist = list(set(img_flat[:,0]))
         N = len(Nlist)
@@ -190,7 +189,7 @@ class SmartBricks:
             else:
                 palette[num,:] = [0, 0, 0]
 
-        palette = sp.reshape(palette.flatten(), (2, np.int(self.Ncolors/2), img.shape[2]))
+        palette = np.reshape(palette.flatten(), (2, np.int(self.Ncolors/2), img.shape[2]))
         plt.title(r'PALETA DE COLORES', size=20)
         plt.imshow(palette)
 
@@ -321,7 +320,7 @@ class SmartBricks:
             else:
                 raise ValueError('brick accepts inputs 2x2 & 2x1 only.')
 
-            img_flat = sp.reshape(img_test, (img_test.shape[0]*img_test.shape[1])).astype(float)
+            img_flat = np.reshape(img_test, (img_test.shape[0]*img_test.shape[1])).astype(float)
             img_new[:,num] = img_flat
 
         #add pass label to array
@@ -369,7 +368,7 @@ class SmartBricks:
                             if reji != i : rej.append(reji)
 
         #recover lsit of passes to image-like
-        img_new_lab2 = sp.reshape(img_new_lab, (img.shape[0], img.shape[1], 4))
+        img_new_lab2 = np.reshape(img_new_lab, (img.shape[0], img.shape[1], 4))
         idxs = np.array(idxs).flatten()
 
         return [keep, rej, img_new_lab, img_new_lab2, idxs]
@@ -508,7 +507,7 @@ class SmartBricks:
             img_flat[rej] = alpha * img_flat[rej]
 
         img_new = np.array(img_flat, dtype=('uint8'))
-        img_new = sp.reshape(img_new, (img.shape[0], img.shape[1], img.shape[2]))
+        img_new = np.reshape(img_new, (img.shape[0], img.shape[1], img.shape[2]))
 
         return img_new, N
 

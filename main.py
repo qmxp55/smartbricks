@@ -27,6 +27,17 @@ import pandas as pd
 
 from brickcreator import SmartBricks
 
+try:
+    from android.storage import app_storage_path
+    settings_path = app_storage_path()
+
+    from android.permissions import request_permissions, Permission
+    request_permissions([Permission.WRITE_EXTERNAL_STORAGE])
+
+except ModuleNotFoundError:
+    pass
+
+
 
 class ContentNavigationDrawer(BoxLayout):
     pass
@@ -92,13 +103,21 @@ class SmartBricksApp(MDApp):
         #self.popup.bind(on_open=self.puopen)
 
     def build(self):
+        Window.bind(on_keyboard=self.key_input)
         self.screen = Builder.load_file("main.kv")
 
         return self.screen
 
+    def key_input(self, window, key, scancode, codepoint, modifier):
+      if key == 27:
+         return True  # override the default behaviour
+      else:           # the key now does nothing
+         return False
+
     custom_sheet = None
-    df = pd.read_csv('/home/omar/myproj/SmartBricks/legoKeys.cvs', sep='\t')
-    out_dir = '/home/omar/myproj_out/'
+    path = os.getcwd()
+    df = pd.read_csv('%s/legoKeys.cvs' %(path), sep='\t')
+    out_dir = '%s/myproj_out/' %(path)
 
     isdir = os.path.isdir(out_dir)
     if isdir:
@@ -249,8 +268,10 @@ class SmartBricksApp(MDApp):
 
         for num, brick, brickLab in zip([1,2,3], [b2x2_i, b2x1_i, b1x1_i], ['2x2', '2x1', '1x1']):
 
-            if invert: brick.icon="/home/omar/myproj/SmartBricks/images/%s_invert.jpg" %(brickLab)
-            else: brick.icon="/home/omar/myproj/SmartBricks/images/%s.jpg" %(brickLab)
+            print('MAIN PATH:', self.path)
+
+            if invert: brick.icon="%s/images/%s_invert.jpg" %(self.path, brickLab)
+            else: brick.icon="%s/images/%s.jpg" %(self.path, brickLab)
 
         #self.root.ids.brick_2x2.text = '2x2: '+self.tab.T[1][keep][0]
         #self.root.ids.brick_2x1.text = '2x1: '+self.tab.T[2][keep][0]
@@ -486,6 +507,12 @@ class SmartBricksApp(MDApp):
         self.value99 = 0
         self.pb = progress_bar()
 
+        self.root.ids.avatar.source = '%s/images/logo.zip' %(self.path)
+
+        self.root.ids.brick_2x2_icon.icon = "%s/images/%s.jpg" %(self.path, '2x2')
+        self.root.ids.brick_2x1_icon.icon = "%s/images/%s.jpg" %(self.path, '2x1')
+        self.root.ids.brick_1x1_icon.icon = "%s/images/%s.jpg" %(self.path, '1x1')
+
         for i in np.arange(8,72,8):
             self.root.ids.mosaic_size.add_widget(
                     CustomMDChip(label='%s' %(str(i)), cb=self.callback_mosaic_size, icon='grid'))
@@ -525,7 +552,8 @@ class SmartBricksApp(MDApp):
         self.custom_sheet.open()
 
     def file_manager_open(self):
-        self.file_manager.show('/home/omar/Pictures')  # output manager to the screen
+        #self.file_manager.show('/home/omar/Pictures')  # output manager to the screen
+        self.file_manager.show(settings_path)
         self.manager_open = True
 
     def select_path(self, path):
@@ -658,7 +686,7 @@ class SmartBricksApp(MDApp):
             icon="nfc",
         )
         bs_menu.open()
-        
+
 self.data_tables = MDDataTable(
             size_hint=(0.9, 0.6),
             use_pagination=True,
