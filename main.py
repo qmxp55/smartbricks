@@ -225,7 +225,9 @@ class SmartBricksApp(MDApp):
         self.root.ids.palette_toolbar.md_bg_color = img_bg_color
 
         self.img_path = os.path.dirname(self.root.ids.image.source)
-        R,G,B = np.float(img_bg_color[0]*256), np.float(img_bg_color[1]*256), np.float(img_bg_color[2]*256)
+        #R,G,B = np.float(img_bg_color[0]*256), np.float(img_bg_color[1]*256), np.float(img_bg_color[2]*256)
+        R,G,B = np.int(img_bg_color[0]*256), np.int(img_bg_color[1]*256), np.int(img_bg_color[2]*256)
+
         mean = np.mean([R,G,B])
         #print(R,G,B)
         if text not in ['All', 'Original']:
@@ -411,9 +413,9 @@ class SmartBricksApp(MDApp):
         figall = fig
         #figoriginal = fig.copy
 
-        paletteLego = SB.palette(SB.img)
-        palette_flat = SB.imgFlat(paletteLego)
-        Nmax = len(palette_flat)
+        #paletteLego = SB.palette(SB.img)
+        #palette_flat = SB.imgFlat(paletteLego)
+        Nmax = len(SB.palette_flat)
         self.pb.load_bar.max = Nmax
 
         table = []
@@ -422,7 +424,7 @@ class SmartBricksApp(MDApp):
 
             print(self.pb.load_bar.value)
 
-            pal = palette_flat[i]
+            pal = SB.palette_flat[i]
             N2x2, N2x1, N1x1 = SB.makeGiff(img=SB.img, RGB=pal, idxs=[SB.res2x2[2], SB.res2x1[2], SB.res1x1[2]], pathdir=self.outdir, fig=figcvs)
             r,g,b = pal
             color = '%s_%s_%s' %(r,g,b)
@@ -552,8 +554,8 @@ class SmartBricksApp(MDApp):
         self.custom_sheet.open()
 
     def file_manager_open(self):
-        #self.file_manager.show('/home/omar/Pictures')  # output manager to the screen
-        self.file_manager.show(settings_path)
+        self.file_manager.show('/home/omar/Pictures')  # output manager to the screen
+        #self.file_manager.show(settings_path)
         self.manager_open = True
 
     def select_path(self, path):

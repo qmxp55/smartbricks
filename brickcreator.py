@@ -4,9 +4,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 #import time
 import imageio
+from PIL import Image
 
-from sklearn.cluster  import KMeans
-from sklearn.neighbors import NearestNeighbors
+#from sklearn.cluster  import KMeans
+#from sklearn.neighbors import NearestNeighbors
 
 from skimage import transform
 import pandas as pd
@@ -43,12 +44,12 @@ class SmartBricks:
         if (h > 512) or (w > 512): img = self.resize(img=img, low=256)
         self.img_original = img
 
-        new_img, indices_new = self.toBrick(img=img)
-        new_img_red = self.resize(img=new_img, low=self.lowsize)
-        new_img_red2, indices_new2 = self.toBrick(img=new_img_red)
+        #new_img, indices_new = self.toBrick(img=img)
+        new_img_red = self.resize(img=img, low=self.lowsize)
+        self.img, indices_new2, self.palette_flat = self.toBrick(img=new_img_red)
 
-        self.h, self.w = new_img_red2.shape[0:2]
-        self.img = self.toLegoColors(new_img_red2)
+        self.h, self.w = self.img.shape[0:2]
+        #self.img = self.toLegoColors(new_img_red2)
         self.res2x2, self.res2x1, self.res1x1 = self.getResults()
 
     def imgFlat(self, img):
@@ -78,7 +79,7 @@ class SmartBricks:
         new_img = np.reshape(new_img.flatten(), (img0.shape[0], img0.shape[1], img0.shape[2]))
 
         return new_img
-
+    '''
     def kmeans(self, img):
 
         img0 = img[:, :, :3]
@@ -92,18 +93,73 @@ class SmartBricks:
         kmeans_img = np.reshape(indices, (img0.shape[0], img0.shape[1]))
 
         return kmeans_img, indices
+    '''
 
-    def toBrick(self, img=None, plots=False):
+    def pil_kmeans(self, img):
+
+        # quantize a image
+        pill_img = Image.fromarray(img).quantize(self.Ncolors)
+        # Convert Image to RGB and make into Numpy array
+        na = np.array(pill_img.convert('RGB'))
+        # Get used colours and counts of each
+        colours, idx, counts = np.unique(na.reshape(-1,3), return_inverse=True, axis=0, return_counts=1)
+
+        return np.array(pill_img), idx
+
+    def closest_color(self, rgb, COLORS):
+        r, g, b = rgb
+        color_diffs = []
+        for color in COLORS:
+            cr, cg, cb = color
+            color_diff = np.sqrt(abs(r - cr)**2 + abs(g - cg)**2 + abs(b - cb)**2)
+            color_diffs.append((color_diff, color))
+        return min(color_diffs)[1]
+
+    def toBrick(self, img=None):
+
+        #img0 = img[:, :, :3]
+        #img0 = img
+        img_flat = np.reshape(img, (img.shape[0]*img.shape[1],img.shape[2])).astype(float)
+        new_flat = np.ones(img_flat.shape, dtype='float64')
+        palette_flat = []
+
+        #kmeans_img, indices = self.kmeans(img)
+        kmeans_img, indices = self.pil_kmeans(img)
+        #
+        path = os.getcwd()
+        df = pd.read_csv('%s/legoKeys.cvs' %(path), sep='\t')
+
+        legoColors = np.empty((len(df), 3), dtype='float64')
+        for i in range(len(df)):
+            legoColors[i] = [df['R'][i], df['G'][i], df['B'][i]]
+
+        for idx in list(set(indices)):
+
+            mask = (indices == idx)
+            current_avg_color = img_flat[mask].mean(axis=0)
+            closest_to_lego = self.closest_color(current_avg_color, legoColors)
+
+            new_flat[:][mask] = closest_to_lego
+            palette_flat.append([closest_to_lego[0], closest_to_lego[1], closest_to_lego[2]])
+
+        new_flat = np.array(new_flat, dtype=('uint8'))
+        palette_flat = np.array(palette_flat, dtype=('uint8'))
+        #print(indices_new.shape)
+        new_img = np.reshape(new_flat.flatten(), (img.shape[0], img.shape[1], img.shape[2]))
+
+        return new_img, new_flat, palette_flat
+
+    '''
+    def toBrick.OLD(self, img=None, plots=False):
 
         #img0 = img[:, :, :3]
         img0 = img
         img_flat = np.reshape(img0, (img0.shape[0]*img0.shape[1],img0.shape[2])).astype(float)
 
-        kmeans_img, indices = self.kmeans(img)
-
+        #kmeans_img, indices = self.kmeans(img)
+        kmeans_img, indices, colours = self.pil_kmeans(img)
         #
-        plt.figure(figsize=(10, 12))
-        bins = np.linspace(0, 256, 40)
+
         indices_new = np.ones(img_flat.shape, dtype='float64')
 
         for num, band in enumerate(['R', 'G', 'B']):
@@ -112,6 +168,10 @@ class SmartBricks:
                 mask = np.where((indices == i))[0]
                 #print(i, len(mask))
                 if plots:
+
+                    plt.figure(figsize=(10, 12))
+                    bins = np.linspace(0, 256, 40)
+
                     plt.subplot(3, 1, num+1)
                     plt.title(r'PIXEL ENTRY %s' %(band))
                     plt.hist(img_flat[:,num][mask], bins=bins, histtype='step', lw=2, label=r'cluster %i' %(i))
@@ -126,6 +186,7 @@ class SmartBricks:
         new_img = np.reshape(indices_new.flatten(), (img0.shape[0], img0.shape[1], img0.shape[2]))
 
         return new_img, indices_new
+
 
     def toLegoColors(self, img):
 
@@ -158,6 +219,7 @@ class SmartBricks:
 
         return img_lego
 
+
     def palette(self, img=None):
 
         img_flat = np.reshape(img, (img.shape[0]*img.shape[1],img.shape[2])).astype(float)
@@ -167,17 +229,14 @@ class SmartBricks:
         if N != self.Ncolors:
             print('Found %i LEGO colors instead of %i required.' %(N, self.Ncolors))
 
-        '''
-        for i in range(3):
-            Nlist = list(set(img_flat[:,i]))
-            N = len(Nlist)
-            if N != self.Ncolors:
-                print('NOT EQUAL! N=%.1f' %(N))
-            else:
-                break
-        '''
 
-        fig = plt.figure(figsize=(self.Ncolors, 4))
+        #for i in range(3):
+        #    Nlist = list(set(img_flat[:,i]))
+        #    N = len(Nlist)
+        #    if N != self.Ncolors:
+        #        print('NOT EQUAL! N=%.1f' %(N))
+        #    else:
+        #        break
 
         palette = np.empty((self.Ncolors, 3), dtype='uint8')
         #for num, i in enumerate(Nlist):
@@ -190,6 +249,10 @@ class SmartBricks:
                 palette[num,:] = [0, 0, 0]
 
         palette = np.reshape(palette.flatten(), (2, np.int(self.Ncolors/2), img.shape[2]))
+
+
+        fig = plt.figure(figsize=(self.Ncolors, 4))
+
         plt.title(r'PALETA DE COLORES', size=20)
         plt.imshow(palette)
 
@@ -207,6 +270,7 @@ class SmartBricks:
         fig.savefig('paleta_colores_test.jpeg', bbox_inches = 'tight', pad_inches = 0)
 
         return palette
+    '''
 
     def brickGrid(self, img, fig, ax):
 
@@ -571,14 +635,14 @@ class SmartBricks:
         figall = fig
         #figoriginal = fig.copy
 
-        paletteLego = self.palette(self.img)
-        palette_flat = self.imgFlat(paletteLego)
+        #paletteLego = self.palette(self.img)
+        #palette_flat = self.imgFlat(paletteLego)
 
         table = []
         #for num, pal in enumerate(palette_flat):
-        for i in tqdm(range(len(palette_flat))):
+        for i in tqdm(range(len(self.palette_flat))):
 
-            pal = palette_flat[i]
+            pal = self.palette_flat[i]
             N2x2, N2x1, N1x1 = self.makeGiff(img=self.img, RGB=pal, idxs=[self.res2x2[2], self.res2x1[2], self.res1x1[2]], pathdir=self.outdir, fig=figcvs)
             r,g,b = pal
             color = '%s_%s_%s' %(r,g,b)
