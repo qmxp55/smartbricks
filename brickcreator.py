@@ -9,9 +9,9 @@ from PIL import Image
 #from sklearn.cluster  import KMeans
 #from sklearn.neighbors import NearestNeighbors
 
-from skimage import transform
+#from skimage import transform
 import pandas as pd
-import matplotlib.animation as animation
+#import matplotlib.animation as animation
 import os
 from os import path
 from random import shuffle
@@ -66,8 +66,10 @@ class SmartBricks:
         if w < h: w, h = low, np.floor(low*r )
         else: h, w = low, np.floor(low/r)
 
-        size = (h, w)
-        img0 = transform.resize(img, size)
+        #size = (np.int(h), np.int(w))
+        #img0 = transform.resize(img, size)
+        img0 = Image.fromarray(img).resize((np.int(h), np.int(w)), Image.ANTIALIAS)
+        img0 = np.array(img0)
 
         #Recover normal RGB values
         img_flat = np.reshape(img0, (img0.shape[0]*img0.shape[1], img0.shape[2])).astype(float)
@@ -577,11 +579,11 @@ class SmartBricks:
 
     #from PIL import Image, ImageDraw
 
-    def makeGiff(self, img, RGB, idxs=None, pathdir=None, fig=None):
+    def makeGiff(self, img, RGB, idxs=None, pathdir=None, fig=None, ax=None):
 
         ims = []
         betas = np.linspace(0, 150, 2)
-        ax = fig.add_subplot(111)
+        #ax = fig.add_subplot(111)
         #ax.axis('off')
         fig.subplots_adjust(left=0.05, bottom=0.05, right=1, top=1, wspace=None, hspace=None)
         #fig = plt.figure(figsize=(20,20))
@@ -605,12 +607,12 @@ class SmartBricks:
             #
             ims.append([im])
 
-        ani = animation.ArtistAnimation(fig, ims, interval=500, blit=True,
-                                    repeat_delay=5)
+        #ani = animation.ArtistAnimation(fig, ims, interval=500, blit=True,
+        #                            repeat_delay=5)
         R,G,B = RGB
         filename = '%s/%s_%s_%s.gif' %(pathdir, str(R), str(G), str(B))
         if path.exists(filename): os.remove(filename)
-        ani.save(filename, writer='imagemagick')
+        #ani.save(filename, writer='imagemagick')
 
         #N_keep2x2 = brickLabelByColor(img, res2x2[0], res2x2[1], RGB)
         #N_keep2x1 = brickLabelByColor(img, res2x1[0], res2x1[1], RGB)
@@ -643,7 +645,7 @@ class SmartBricks:
         for i in tqdm(range(len(self.palette_flat))):
 
             pal = self.palette_flat[i]
-            N2x2, N2x1, N1x1 = self.makeGiff(img=self.img, RGB=pal, idxs=[self.res2x2[2], self.res2x1[2], self.res1x1[2]], pathdir=self.outdir, fig=figcvs)
+            N2x2, N2x1, N1x1 = self.makeGiff(img=self.img, RGB=pal, idxs=[self.res2x2[2], self.res2x1[2], self.res1x1[2]], pathdir=self.outdir, fig=figcvs, ax=ax)
             r,g,b = pal
             color = '%s_%s_%s' %(r,g,b)
             table.append([color, N2x2, N2x1, N1x1])

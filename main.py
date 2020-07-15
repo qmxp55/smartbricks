@@ -27,15 +27,13 @@ import pandas as pd
 
 from brickcreator import SmartBricks
 
-try:
-    from android.storage import app_storage_path
-    settings_path = app_storage_path()
+#try:
+from android.storage import app_storage_path
+from android.storage import primary_external_storage_path
+from android.permissions import request_permissions, Permission
 
-    from android.permissions import request_permissions, Permission
-    request_permissions([Permission.WRITE_EXTERNAL_STORAGE])
-
-except ModuleNotFoundError:
-    pass
+#except ModuleNotFoundError:
+#    pass
 
 
 
@@ -98,21 +96,31 @@ class SmartBricksApp(MDApp):
             exit_manager=self.exit_manager,
             select_path=self.select_path,
             previous=True)
+
+        request_permissions([Permission.WRITE_EXTERNAL_STORAGE,
+                             Permission.READ_EXTERNAL_STORAGE])
+
         #self.progress_bar = ProgressBar()
         #self.popup = Popup(title='Progress', content=self.progress_bar)
         #self.popup.bind(on_open=self.puopen)
 
     def build(self):
-        Window.bind(on_keyboard=self.key_input)
+        #Window.bind(on_keyboard=self.key_input)
         self.screen = Builder.load_file("main.kv")
 
         return self.screen
 
-    def key_input(self, window, key, scancode, codepoint, modifier):
-      if key == 27:
-         return True  # override the default behaviour
-      else:           # the key now does nothing
-         return False
+    def on_pause(self):
+        return True
+
+    #def key_input(self, window, key, scancode, codepoint, modifier):
+    #  if key == 27:
+    #     return True  # override the default behaviour
+    #  else:           # the key now does nothing
+#         return False
+
+    #settings_path = app_storage_path()
+    SD_CARD = primary_external_storage_path()
 
     custom_sheet = None
     path = os.getcwd()
@@ -425,7 +433,7 @@ class SmartBricksApp(MDApp):
             print(self.pb.load_bar.value)
 
             pal = SB.palette_flat[i]
-            N2x2, N2x1, N1x1 = SB.makeGiff(img=SB.img, RGB=pal, idxs=[SB.res2x2[2], SB.res2x1[2], SB.res1x1[2]], pathdir=self.outdir, fig=figcvs)
+            N2x2, N2x1, N1x1 = SB.makeGiff(img=SB.img, RGB=pal, idxs=[SB.res2x2[2], SB.res2x1[2], SB.res1x1[2]], pathdir=self.outdir, fig=figcvs, ax=ax)
             r,g,b = pal
             color = '%s_%s_%s' %(r,g,b)
             table.append([color, N2x2, N2x1, N1x1])
@@ -554,8 +562,9 @@ class SmartBricksApp(MDApp):
         self.custom_sheet.open()
 
     def file_manager_open(self):
-        self.file_manager.show('/home/omar/Pictures')  # output manager to the screen
-        #self.file_manager.show(settings_path)
+        #self.file_manager.show('/home/omar/Pictures')  # output manager to the screen
+        #self.file_manager.show(self.settings_path)
+        self.file_manager.show(self.SD_CARD)
         self.manager_open = True
 
     def select_path(self, path):
