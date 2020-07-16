@@ -1,5 +1,7 @@
 #
 #import scipy as sp
+import zipfile
+import io
 import numpy as np
 import matplotlib.pyplot as plt
 #import time
@@ -9,13 +11,16 @@ from PIL import Image
 #from sklearn.cluster  import KMeans
 #from sklearn.neighbors import NearestNeighbors
 
-#from skimage import transform
 import pandas as pd
-#import matplotlib.animation as animation
+
 import os
 from os import path
 from random import shuffle
 from tqdm import tqdm
+
+#does not work for kivymd
+#import matplotlib.animation as animation
+#from skimage import transform
 
 #from scipy.cluster.vq import kmeans
 
@@ -66,12 +71,14 @@ class SmartBricks:
         if w < h: w, h = low, np.floor(low*r )
         else: h, w = low, np.floor(low/r)
 
-        #size = (np.int(h), np.int(w))
+        size = (np.int(h), np.int(w))
         #img0 = transform.resize(img, size)
-        img0 = Image.fromarray(img).resize((np.int(h), np.int(w)), Image.ANTIALIAS)
+        img0 = Image.fromarray(img).resize(size, Image.ANTIALIAS)
+        #img0 = img.resize(size, Image.ANTIALIAS)
         img0 = np.array(img0)
 
-        #Recover normal RGB values
+        #Recover normal RGB values (only if transform is used)
+        '''
         img_flat = np.reshape(img0, (img0.shape[0]*img0.shape[1], img0.shape[2])).astype(float)
         new_img = np.ones(img_flat.shape, dtype='float64')
         for i in [0,1,2]:
@@ -79,8 +86,10 @@ class SmartBricks:
 
         new_img = np.array(new_img, dtype=('uint8'))
         new_img = np.reshape(new_img.flatten(), (img0.shape[0], img0.shape[1], img0.shape[2]))
+        '''
 
-        return new_img
+        return img0
+
     '''
     def kmeans(self, img):
 
@@ -579,6 +588,7 @@ class SmartBricks:
 
     #from PIL import Image, ImageDraw
 
+    '''
     def makeGiff(self, img, RGB, idxs=None, pathdir=None, fig=None, ax=None):
 
         ims = []
@@ -607,12 +617,11 @@ class SmartBricks:
             #
             ims.append([im])
 
-        #ani = animation.ArtistAnimation(fig, ims, interval=500, blit=True,
-        #                            repeat_delay=5)
+        ani = animation.ArtistAnimation(fig, ims, interval=500, blit=True, repeat_delay=5)
         R,G,B = RGB
         filename = '%s/%s_%s_%s.gif' %(pathdir, str(R), str(G), str(B))
         if path.exists(filename): os.remove(filename)
-        #ani.save(filename, writer='imagemagick')
+        ani.save(filename, writer='imagemagick')
 
         #N_keep2x2 = brickLabelByColor(img, res2x2[0], res2x2[1], RGB)
         #N_keep2x1 = brickLabelByColor(img, res2x1[0], res2x1[1], RGB)
@@ -620,6 +629,38 @@ class SmartBricks:
 
         #return N_keep2x2, N_keep2x1, N_keep1x1
         return N[0], N[1], N[2]
+    '''
+
+    def makeGiff(self, img, RGB, idxs=None, pathdir=None, fig=None, ax=None):
+
+        ims = []
+        betas = np.linspace(0, 150, 2)
+
+        fig.subplots_adjust(left=0.05, bottom=0.05, right=1, top=1, wspace=None, hspace=None)
+
+        R,G,B = RGB
+        filename = '%s/%s_%s_%s.zip' %(pathdir, str(R), str(G), str(B))
+        if path.exists(filename): os.remove(filename)
+
+        print("Creating archive: %s" %(filename))
+        with zipfile.ZipFile(filename, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
+
+            for beta in betas:
+                if beta == 0:
+                    new_frame, _ = self.selectAColor(img=img, RGB=RGB, beta=beta, idxs=None)
+                else:
+                    new_frame, N = self.selectAColor(img=img, RGB=RGB, beta=beta, idxs=idxs)
+                #
+                ax.imshow(new_frame)
+                buf = io.BytesIO()
+                fig.savefig(buf, bbox_inches = 'tight', pad_inches = 0)
+                #ax.close()
+                img_name = "fig_%f.png" %(beta)
+                print("  Writing image %s in the archive" %(img_name))
+                zf.writestr(img_name, buf.getvalue())
+
+        return N[0], N[1], N[2]
+
 
     def saveProj(self):
 

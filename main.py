@@ -27,13 +27,12 @@ import pandas as pd
 
 from brickcreator import SmartBricks
 
-#try:
-from android.storage import app_storage_path
-from android.storage import primary_external_storage_path
-from android.permissions import request_permissions, Permission
-
-#except ModuleNotFoundError:
-#    pass
+try:
+    from android.storage import app_storage_path
+    from android.storage import primary_external_storage_path
+    from android.permissions import request_permissions, Permission
+except ModuleNotFoundError:
+    pass
 
 
 
@@ -97,12 +96,12 @@ class SmartBricksApp(MDApp):
             select_path=self.select_path,
             previous=True)
 
-        request_permissions([Permission.WRITE_EXTERNAL_STORAGE,
-                             Permission.READ_EXTERNAL_STORAGE])
+        try:
 
-        #self.progress_bar = ProgressBar()
-        #self.popup = Popup(title='Progress', content=self.progress_bar)
-        #self.popup.bind(on_open=self.puopen)
+            request_permissions([Permission.WRITE_EXTERNAL_STORAGE,
+                             Permission.READ_EXTERNAL_STORAGE])
+        except NameError:
+            pass
 
     def build(self):
         #Window.bind(on_keyboard=self.key_input)
@@ -120,12 +119,20 @@ class SmartBricksApp(MDApp):
 #         return False
 
     #settings_path = app_storage_path()
-    SD_CARD = primary_external_storage_path()
 
-    custom_sheet = None
     path = os.getcwd()
     df = pd.read_csv('%s/legoKeys.cvs' %(path), sep='\t')
-    out_dir = '%s/myproj_out/' %(path)
+
+    try:
+        SD_CARD = primary_external_storage_path()
+        out_dir = '%s/myproj_out/' %(SD_CARD)
+        print('ANDROID mmodules loaded...')
+
+    except NameError:
+        print('ANDROID modules failed...')
+        SD_CARD = '/home/omar/Pictures'
+        out_dir = '%s/myproj_out/' %(path)
+        pass
 
     isdir = os.path.isdir(out_dir)
     if isdir:
@@ -133,6 +140,8 @@ class SmartBricksApp(MDApp):
     else:
         os.mkdir(out_dir)
         plist = None
+
+    custom_sheet = None
 
     def callback_for_menu_items(self, *args):
         toast(args[0])
@@ -145,7 +154,7 @@ class SmartBricksApp(MDApp):
         self.root.ids.screen_manager.current = screenName
 
     def ifproject(self):
-        if ((self.isdir) & (len(self.plist) > 0)):
+        if ((self.isdir) & (self.plist is not None)):
             self.openScreenName('projects')
         else:
             self.callback_for_menu_items('No projects saved yet. Select START to start a new project.')
@@ -159,7 +168,8 @@ class SmartBricksApp(MDApp):
         self.openScreenName('main')
 
         self.img_path = os.path.dirname(img_source)
-        self.tab = np.load(self.img_path+'/table.npy')
+        tab = np.load(self.img_path+'/table.npz')
+        self.tab = tab['data']
 
         row_data = []
         n2x2, n2x1, n1x1 = 0, 0, 0
@@ -239,7 +249,7 @@ class SmartBricksApp(MDApp):
         mean = np.mean([R,G,B])
         #print(R,G,B)
         if text not in ['All', 'Original']:
-            self.root.ids.image.source = self.img_path+'/%s_%s_%s.gif' %(str(R), str(G), str(B))
+            self.root.ids.image.source = self.img_path+'/%s_%s_%s.zip' %(str(R), str(G), str(B))
         else:
             self.root.ids.image.source = self.img_path+'/%s.jpeg' %(text.lower())
 
@@ -247,7 +257,9 @@ class SmartBricksApp(MDApp):
 
 
         #Get bricks counts
-        self.tab = np.load(self.img_path+'/table.npy')
+        tab = np.load(self.img_path+'/table.npz')
+        self.tab = tab['data']
+
         if text not in ['All', 'Original']:
             keep = self.tab.T[0] == '%s_%s_%s' %(str(R), str(G), str(B))
         else:
@@ -278,7 +290,7 @@ class SmartBricksApp(MDApp):
 
         for num, brick, brickLab in zip([1,2,3], [b2x2_i, b2x1_i, b1x1_i], ['2x2', '2x1', '1x1']):
 
-            print('MAIN PATH:', self.path)
+            #print('MAIN PATH:', self.path)
 
             if invert: brick.icon="%s/images/%s_invert.jpg" %(self.path, brickLab)
             else: brick.icon="%s/images/%s.jpg" %(self.path, brickLab)
@@ -354,16 +366,15 @@ class SmartBricksApp(MDApp):
 
 
 
-        if (self.plist is not None) & (self.root.ids.project_name.text in self.plist):
+        if (self.plist is not None):
+            if (self.root.ids.project_name.text in self.plist):
 
-            print('project name already exist...')
-            self.show_alert_dialog(name=self.root.ids.project_name.text)
-
+                print('project name already exist...')
+                self.show_alert_dialog(name=self.root.ids.project_name.text)
+            else:
+                self.show_dialog_progress()
         else:
             self.show_dialog_progress()
-            #self.run_mosaic
-            #self.puopen()
-            #self.run_mosaic(imgpath=imgpath, Ncolors=Ncolors, lowsize=lowsize, outdir=outdir)
 
 
     def show_dialog_progress(self):
@@ -458,7 +469,7 @@ class SmartBricksApp(MDApp):
         plt.imshow(SB.img_original)
         fig0.savefig('%s/original.jpeg' %(self.outdir), bbox_inches = 'tight', pad_inches = 0)
 
-        np.save('%s/table' %(self.outdir), table)
+        np.savez_compressed('%s/table' %(self.outdir), data=table)
 
         if Nmax == self.pb.load_bar.value:
             self.dialog2.dismiss()
@@ -531,7 +542,7 @@ class SmartBricksApp(MDApp):
             self.root.ids.mosaic_colors.add_widget(
                     CustomMDChip(label=str(i), cb=self.callback_mosaic_color, icon='palette'))
 
-        if ((self.isdir) & (len(self.plist) > 0)):
+        if ((self.isdir) & (self.plist is not None)):
             for dir in self.plist:
                 self.root.ids.grid_list.add_widget(
                     CustomSmartTileWithLabel(source = self.out_dir+dir+'/all.jpeg',
