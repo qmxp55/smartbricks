@@ -2,11 +2,13 @@
 #import scipy as sp
 import zipfile
 import io
+#from io import StringIO
 import numpy as np
 import matplotlib.pyplot as plt
 #import time
 import imageio
-from PIL import Image
+import PIL
+from PIL import Image, ImageEnhance
 
 #from sklearn.cluster  import KMeans
 #from sklearn.neighbors import NearestNeighbors
@@ -37,7 +39,10 @@ class SmartBricks:
         self.Ncolors = Ncolors
         self.lowsize = lowsize
         self.outdir = outdir
-        self.size = (600 - (lowsize*400/64)) if lowsize > 24 else 550
+        #self.size = (600 - (lowsize*400/64)) if lowsize > 24 else 550
+        self.size = (85 - (lowsize*80/64)) if lowsize > 12 else 550
+        self.frompc = True
+        self.lmax = 8
         #self.loader = loader
         #self.fig = plt.figure(figsize=(20,20))
         img = imageio.imread(self.imgpath)
@@ -48,6 +53,18 @@ class SmartBricks:
         #image is bigger than 512 pix?
         if (h > 512) or (w > 512): img = self.resize(img=img, low=256)
         self.img_original = img
+        
+        #increase contrast
+        pill_img = Image.fromarray(img)
+        enhancer = ImageEnhance.Contrast(pill_img)
+        im_output = enhancer.enhance(1.8)
+        
+        #increase saturation
+        converter = ImageEnhance.Color(im_output)
+        im_output2 = converter.enhance(1.3)
+
+        img = np.array(im_output2)
+        self.img_saturated = img
 
         #new_img, indices_new = self.toBrick(img=img)
         new_img_red = self.resize(img=img, low=self.lowsize)
@@ -56,6 +73,9 @@ class SmartBricks:
         self.h, self.w = self.img.shape[0:2]
         #self.img = self.toLegoColors(new_img_red2)
         self.res2x2, self.res2x1, self.res1x1 = self.getResults()
+        
+        #image paddin
+        self.left, self.bottom, self.right, self.top = 0.08, 0.08, 0.95, 0.95
 
     def imgFlat(self, img):
 
@@ -71,7 +91,8 @@ class SmartBricks:
         if w < h: w, h = low, np.floor(low*r )
         else: h, w = low, np.floor(low/r)
 
-        size = (np.int(h), np.int(w))
+        #size = (np.int(h), np.int(w))
+        size = (np.int(w), np.int(h))
         #img0 = transform.resize(img, size)
         img0 = Image.fromarray(img).resize(size, Image.ANTIALIAS)
         #img0 = img.resize(size, Image.ANTIALIAS)
@@ -295,10 +316,10 @@ class SmartBricks:
         brickGrid = np.array(brickGrid).T
 
         #plt.scatter(brickGrid[0], brickGrid[1], s=250, c='w', alpha=0.3)
-        plt.scatter(brickGrid[0], brickGrid[1], s=self.size, facecolors='w', edgecolors='k', lw=3, alpha=0.2)
+        plt.scatter(brickGrid[0], brickGrid[1], s=self.size, facecolors='w', edgecolors='k', lw=2, alpha=0.2)
 
-        plt.xticks(np.arange(0, w, 5), fontsize=60)
-        plt.yticks(np.arange(0, h, 5), fontsize=60)
+        plt.xticks(np.arange(0, w, 5), fontsize=15)
+        plt.yticks(np.arange(0, h, 5), fontsize=15)
 
         return brickGrid
 
@@ -564,8 +585,8 @@ class SmartBricks:
                 #if bricksize == 0: beta_i = beta*0.5
                 #else: beta_i = beta*bricksize
                 #img_flat[keep_i] = (1.1+j) * img_flat[keep_i] + beta
-                img_flat[keep_i] = 1.2 * img_flat[keep_i] + beta*j
-                j += 0.2
+                img_flat[keep_i] = 1.1 * img_flat[keep_i] + beta*j
+                j += 0.1
                 #img_flat[keep_i] = bricksize * img_flat[keep_i]
 
                 if bricksize == 0: N.append(int(len(keep_i[0])/4))
@@ -636,81 +657,149 @@ class SmartBricks:
         ims = []
         betas = np.linspace(0, 150, 2)
 
-        fig.subplots_adjust(left=0.05, bottom=0.05, right=1, top=1, wspace=None, hspace=None)
+        fig.subplots_adjust(left=self.left, bottom=self.bottom, right=self.right, top=self.top, wspace=None, hspace=None)
 
         R,G,B = RGB
         filename = '%s/%s_%s_%s.zip' %(pathdir, str(R), str(G), str(B))
         if path.exists(filename): os.remove(filename)
 
-        print("Creating archive: %s" %(filename))
+        #print("Creating archive: %s" %(filename))
         with zipfile.ZipFile(filename, mode="w", compression=zipfile.ZIP_DEFLATED) as zf:
 
             for beta in betas:
                 if beta == 0:
                     new_frame, _ = self.selectAColor(img=img, RGB=RGB, beta=beta, idxs=None)
+                    #new_frame = img
                 else:
                     new_frame, N = self.selectAColor(img=img, RGB=RGB, beta=beta, idxs=idxs)
+                    #new_frame = Image.fromarray(img).point(lambda i: i * 1.2)
                 #
+                
+                
+                #byteImg = Image.fromarray(new_frame)
+                #buf = io.BytesIO()
+                #byteImg.save(buf, "PNG")
+                #buf.seek(0)
+                ##fig.savefig(buf, bbox_inches = 'tight', pad_inches = 0)
+                ##ax.close()
+                #img_name = "fig_%f.png" %(beta)
+                #zf.writestr(img_name, buf.getvalue())
+
+                
                 ax.imshow(new_frame)
-                buf = io.BytesIO()
-                fig.savefig(buf, bbox_inches = 'tight', pad_inches = 0)
-                #ax.close()
+                #buffer = StringIO()
+                buffer = io.BytesIO()
+                canvas = plt.get_current_fig_manager().canvas
+                canvas.draw()
+                pil_image = PIL.Image.frombytes('RGB', canvas.get_width_height(), canvas.tostring_rgb())
+                if self.frompc:
+                    fig.savefig(buffer, bbox_inches = 'tight', pad_inches = 0)
+                else:
+                    pil_image.save(buffer, 'PNG')
+                #buffer.seek(0)
+                #plt.close()
                 img_name = "fig_%f.png" %(beta)
-                print("  Writing image %s in the archive" %(img_name))
-                zf.writestr(img_name, buf.getvalue())
+                zf.writestr(img_name, buffer.getvalue())
+                
+                
+                #byteImgIO = io.BytesIO()
+                #byteImg = Image.open("some/location/to/a/file/in/my/directories.png")
+                #byteImg.save(byteImgIO, "PNG")
+                #byteImgIO.seek(0)
+                #byteImg = byteImgIO.read()
 
         return N[0], N[1], N[2]
 
 
     def saveProj(self):
+        
+        import time
 
-        #start = time.time()
+        start = time.time()
         ispathdir = os.path.isdir(self.outdir)
         if not ispathdir: os.makedirs(self.outdir, exist_ok=True)
 
-
+        if self.w > self.h: x_size, y_size = self.lmax, self.h*self.lmax/self.w
+        else: x_size, y_size = self.w*self.lmax/self.h, self.lmax
+        
         #fig0 = fig
-        fig = plt.figure(figsize=(30,30))
+        fig = plt.figure(figsize=(x_size, y_size))
         ax = plt.gca()
 
         self.bricksCanvas(img=self.img, fig=fig, ax=ax, RGB=None, res2x2=self.res2x2, res2x1=self.res2x1, res1x1=self.res1x1)
+        
         figcvs = fig
         figall = fig
+        #fig0 = fig
         #figoriginal = fig.copy
 
         #paletteLego = self.palette(self.img)
         #palette_flat = self.imgFlat(paletteLego)
+        
+        end = time.time()
+        print('Total run time #1: %f sec' %(end - start))
 
+        start = time.time()
+        
         table = []
         #for num, pal in enumerate(palette_flat):
         for i in tqdm(range(len(self.palette_flat))):
 
             pal = self.palette_flat[i]
             N2x2, N2x1, N1x1 = self.makeGiff(img=self.img, RGB=pal, idxs=[self.res2x2[2], self.res2x1[2], self.res1x1[2]], pathdir=self.outdir, fig=figcvs, ax=ax)
+            #self.makeGiff(img=self.img, RGB=pal, idxs=[self.res2x2[2], self.res2x1[2], self.res1x1[2]], pathdir=self.outdir, fig=figcvs, ax=ax)
             r,g,b = pal
             color = '%s_%s_%s' %(r,g,b)
             table.append([color, N2x2, N2x1, N1x1])
             self.loader = i
-
+        
+        end = time.time()
+        print('Total run time #2: %f sec' %(end - start))
+        
+        start = time.time()
+        
         t = np.array(table)
         N2x2total = np.sum(t[:,1].astype(int))
         N2x1total = np.sum(t[:,2].astype(int))
         N1x1total = np.sum(t[:,3].astype(int))
         table.append(['total', N2x2total, N2x1total, N1x1total])
 
+        end = time.time()
+        print('Total run time #3: %f sec' %(end - start))
+        
+        
+        start = time.time()
+        
         #fig = plt.figure(figsize=(20,20))
+        figall.subplots_adjust(left=self.left, bottom=self.bottom, right=self.right, top=self.top, wspace=None, hspace=None)
         ax = figall.add_subplot(111)
         ax.imshow(self.img)
+        buffer = io.BytesIO()
         #bricksCanvas(img, fig=fig, ax=ax, RGB=None, res2x2=res2x2, res2x1=res2x1, res1x1=res1x1)
 
-        figall.savefig('%s/all.jpeg' %(self.outdir), bbox_inches = 'tight', pad_inches = 0)
+        #figall.savefig('%s/all.jpeg' %(self.outdir), bbox_inches = 'tight', pad_inches = 0)
+        canvas = plt.get_current_fig_manager().canvas
+        canvas.draw()
+        pil_image = PIL.Image.frombytes('RGB', canvas.get_width_height(), canvas.tostring_rgb())
+        pil_image.save('%s/all.jpeg' %(self.outdir), 'JPEG')
 
-        fig0 = plt.figure(figsize=(12,12))
+        fig0 = plt.figure(figsize=(x_size, y_size))
+        fig0.subplots_adjust(left=self.left, bottom=self.bottom, right=self.right, top=self.top, wspace=None, hspace=None)
+        ax = plt.gca()
         ax = fig0.add_subplot(111)
-        plt.imshow(self.img_original)
-        fig0.savefig('%s/original.jpeg' %(self.outdir), bbox_inches = 'tight', pad_inches = 0)
+        #fig.subplots_adjust(left=0.05, bottom=0.05, right=1, top=1, wspace=None, hspace=None)
+        ax.imshow(self.img_original)
+        buffer = io.BytesIO()
+        #fig0.savefig('%s/original.jpeg' %(self.outdir), bbox_inches = 'tight', pad_inches = 0)
+        canvas = plt.get_current_fig_manager().canvas
+        canvas.draw()
+        pil_image = PIL.Image.frombytes('RGB', canvas.get_width_height(), canvas.tostring_rgb())
+        pil_image.save('%s/original.jpeg' %(self.outdir), 'JPEG')
 
-        np.save('%s/table' %(self.outdir), table)
+        np.savez_compressed('%s/table' %(self.outdir), data=table)
+        
+        end = time.time()
+        print('Total run time #4: %f sec' %(end - start))
 
         #end = time.time()
         #print('Total run time: %f sec' %(end - start))
