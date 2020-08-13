@@ -22,6 +22,10 @@ from kivymd.uix.datatables import MDDataTable
 from kivymd.uix.bottomsheet import MDCustomBottomSheet, MDGridBottomSheet, MDListBottomSheet
 
 import os
+import io
+import PIL
+import time
+import glob
 import numpy as np
 import pandas as pd
 
@@ -40,7 +44,9 @@ class ContentNavigationDrawer(BoxLayout):
     pass
 
 class CustomSmartTileWithLabel(SmartTileWithLabel):
-    #stlab = ObjectProperty()
+    pass
+
+class CustomSmartTileWithLabelGallery(SmartTileWithLabel):
     pass
 
 #class ContentCustomSheet(BoxLayout):
@@ -94,7 +100,7 @@ class SmartBricksApp(MDApp):
         self.file_manager = MDFileManager(
             exit_manager=self.exit_manager,
             select_path=self.select_path,
-            previous=True)
+            previous=True, ext=['jpeg', 'png', 'jpg'])
 
         try:
 
@@ -124,8 +130,8 @@ class SmartBricksApp(MDApp):
     df = pd.read_csv('%s/legoKeys.cvs' %(path), sep='\t')
 
     try:
-        SD_CARD = primary_external_storage_path()
-        out_dir = '%s/myproj_out/' %(SD_CARD)
+        SD_CARD = primary_external_storage_path()+'/'+'DCIM/Camera'
+        out_dir = '%s/smartbricks_outputs/' %(primary_external_storage_path())
         print('ANDROID mmodules loaded...')
 
     except NameError:
@@ -133,13 +139,18 @@ class SmartBricksApp(MDApp):
         SD_CARD = '/home/omar/Pictures'
         out_dir = '%s/myproj_out/' %(path)
         pass
-
+    
     isdir = os.path.isdir(out_dir)
-    if isdir:
-        plist = os.listdir(out_dir)
-    else:
-        os.mkdir(out_dir)
-        plist = None
+
+    def plist(self):
+        
+        if self.isdir:
+            plist_ = os.listdir(self.out_dir)
+        else:
+            os.mkdir(self.out_dir)
+            plist_ = None
+            
+        return plist_
 
     custom_sheet = None
 
@@ -154,8 +165,22 @@ class SmartBricksApp(MDApp):
         self.root.ids.screen_manager.current = screenName
 
     def ifproject(self):
-        if ((self.isdir) & (self.plist is not None)):
+        
+        print('PLIST!!!!!!!!!', self.plist())
+        print('PLIST TYPE!!!!!!!!!', type(self.plist()))
+        
+        if ((self.isdir) & (self.plist() is not None)):
+            
+            #clear widgets if any previously load to avoid staking of color palettes between projects
+            self.root.ids.grid_list.clear_widgets()
+            #self.root.ids.grid_list.remove_widget(self.root.ids.grid_list)
+            
             self.openScreenName('projects')
+            
+            #if ((self.isdir) & (self.plist is not None)):
+            for dir_ in self.plist():
+                self.root.ids.grid_list.add_widget(CustomSmartTileWithLabel(source = self.out_dir+dir_+'/all.jpeg', text = "[size=32]%s[/size]" %(dir_)))
+            
         else:
             self.callback_for_menu_items('No projects saved yet. Select START to start a new project.')
 
@@ -248,10 +273,18 @@ class SmartBricksApp(MDApp):
 
         mean = np.mean([R,G,B])
         #print(R,G,B)
+        
+        
+        #self.root.ids.image.parent.remove_widget(self.root.ids.image)
+        
         if text not in ['All', 'Original']:
+            self.root.ids.image.clear_widgets()
             self.root.ids.image.source = self.img_path+'/%s_%s_%s.zip' %(str(R), str(G), str(B))
         else:
             self.root.ids.image.source = self.img_path+'/%s.jpeg' %(text.lower())
+            
+        print('SOURCE!!!!!!!', self.root.ids.image.source)
+        print('TEXT!!!!!!!', text)
 
         id.icon = 'checkbox-marked-circle'
 
@@ -366,8 +399,8 @@ class SmartBricksApp(MDApp):
 
 
 
-        if (self.plist is not None):
-            if (self.root.ids.project_name.text in self.plist):
+        if (self.plist() is not None):
+            if (self.root.ids.project_name.text in self.plist()):
 
                 print('project name already exist...')
                 self.show_alert_dialog(name=self.root.ids.project_name.text)
@@ -384,7 +417,7 @@ class SmartBricksApp(MDApp):
                         title="Creating mosaic. Please wait.",
                         type="custom",
                         #text="Creating mosaic. Please wait.",
-                        content_cls=self.pb,
+                        content_cls=progress_bar(),#self.pb,
                         on_open=self.run_mosaic
                         #on_open=self.puopen)
                         #on_open=self.run_mosaic(imgpath=imgpath, Ncolors=Ncolors, lowsize=lowsize, outdir=outdir)
@@ -399,15 +432,23 @@ class SmartBricksApp(MDApp):
 
     #def run_mosaic(self, imgpath=None, Ncolors=None, lowsize=None, outdir=None):
     def run_mosaic(self, instance):
+        
+        #clear widgets if any previously load to avoid staking of color palettes between projects
+        #self.pb.load_bar.clear_widgets()
+        self.pb = progress_bar()
+        #self.pb.load_bar.parent.remove_widget(self.pb.load_bar)
+        self.pb.load_bar.value = 0
 
         #print(self.pb.load_bar.value)
         #Nmax = np.int(self.mosaic_color_val) #+ 3
 
-
+        start = time.time()
         SB = SmartBricks(imgpath=self.imgpath, Ncolors=self.Ncolors, lowsize=self.lowsize, outdir=self.outdir)
         #print(SB.img)
         #print(SB.res1x1)
         #SB.saveProj()
+        end = time.time()
+        print('Total run time #1: %f sec' %(end - start))
         print('point size', SB.size)
 
 
@@ -420,11 +461,15 @@ class SmartBricksApp(MDApp):
             for f in files:
                 os.remove(self.outdir+'/'+f)
 
-        lmax = 30
-        if SB.w > SB.h: x_size, y_size = lmax, SB.h*lmax/SB.w
-        else: x_size, y_size = SB.w*lmax/SB.h, lmax
+        start = time.time()
+        
+        #lmax = 10
+            
+        if SB.w > SB.h: x_size, y_size = SB.lmax, SB.h*SB.lmax/SB.w
+        else: x_size, y_size = SB.w*SB.lmax/SB.h, SB.lmax
 
         fig = plt.figure(figsize=(x_size,y_size))
+        #fig = plt.figure(figsize=(12,12))
         ax = plt.gca()
 
         SB.bricksCanvas(img=SB.img, fig=fig, ax=ax, RGB=None, res2x2=SB.res2x2, res2x1=SB.res2x1, res1x1=SB.res1x1)
@@ -456,20 +501,53 @@ class SmartBricksApp(MDApp):
         N2x1total = np.sum(t[:,2].astype(int))
         N1x1total = np.sum(t[:,3].astype(int))
         table.append(['total', N2x2total, N2x1total, N1x1total])
-
-        #fig = plt.figure(figsize=(20,20))
+        
+        end = time.time()
+        print('Total run time #2: %f sec' %(end - start))
+        
+        
+        start = time.time()
+        
+        figall.subplots_adjust(left=SB.left, bottom=SB.bottom, right=SB.right, top=SB.top, wspace=None, hspace=None)
         ax = figall.add_subplot(111)
         ax.imshow(SB.img)
-        #bricksCanvas(img, fig=fig, ax=ax, RGB=None, res2x2=res2x2, res2x1=res2x1, res1x1=res1x1)
+        #True if testing App from PC.
+        if SB.frompc:
+            figall.savefig('%s/all.jpeg' %(self.outdir), bbox_inches = 'tight', pad_inches = 0)
+        else:
+            buffer = io.BytesIO()
+            canvas = plt.get_current_fig_manager().canvas
+            canvas.draw()
+            pil_image = PIL.Image.frombytes('RGB', canvas.get_width_height(), canvas.tostring_rgb())
+            pil_image.save('%s/all.jpeg' %(self.outdir), 'JPEG')
 
-        figall.savefig('%s/all.jpeg' %(self.outdir), bbox_inches = 'tight', pad_inches = 0)
-
-        fig0 = plt.figure(figsize=(12,12))
+        fig0 = plt.figure(figsize=(x_size,y_size))
+        fig0.subplots_adjust(left=SB.left, bottom=SB.bottom, right=SB.right, top=SB.top, wspace=None, hspace=None)
+        ax = plt.gca()
         ax = fig0.add_subplot(111)
-        plt.imshow(SB.img_original)
-        fig0.savefig('%s/original.jpeg' %(self.outdir), bbox_inches = 'tight', pad_inches = 0)
+        ax.imshow(SB.img_original)
+        if SB.frompc:
+            fig0.savefig('%s/original.jpeg' %(self.outdir), bbox_inches = 'tight', pad_inches = 0)
+        else:
+            buffer = io.BytesIO()
+            canvas = plt.get_current_fig_manager().canvas
+            canvas.draw()
+            pil_image = PIL.Image.frombytes('RGB', canvas.get_width_height(), canvas.tostring_rgb())
+            pil_image.save('%s/original.jpeg' %(self.outdir), 'JPEG')
+
+        #ax = figall.add_subplot(111)
+        #ax.imshow(SB.img)
+        #figall.savefig('%s/all.jpeg' %(self.outdir), bbox_inches = 'tight', pad_inches = 0)
+
+        #fig0 = plt.figure(figsize=(12,12))
+        #ax = fig0.add_subplot(111)
+        #plt.imshow(SB.img_original)
+        #fig0.savefig('%s/original.jpeg' %(self.outdir), bbox_inches = 'tight', pad_inches = 0)
 
         np.savez_compressed('%s/table' %(self.outdir), data=table)
+        
+        end = time.time()
+        print('Total run time #3: %f sec' %(end - start))
 
         if Nmax == self.pb.load_bar.value:
             self.dialog2.dismiss()
@@ -526,7 +604,7 @@ class SmartBricksApp(MDApp):
         self.dialog = None
         self.dialog2 = None
         self.value99 = 0
-        self.pb = progress_bar()
+        #self.pb = progress_bar()
 
         self.root.ids.avatar.source = '%s/images/logo.zip' %(self.path)
 
@@ -542,12 +620,6 @@ class SmartBricksApp(MDApp):
             self.root.ids.mosaic_colors.add_widget(
                     CustomMDChip(label=str(i), cb=self.callback_mosaic_color, icon='palette'))
 
-        if ((self.isdir) & (self.plist is not None)):
-            for dir in self.plist:
-                self.root.ids.grid_list.add_widget(
-                    CustomSmartTileWithLabel(source = self.out_dir+dir+'/all.jpeg',
-                                             text = "[size=32]%s[/size]" %(dir))
-                )
 
             #print(self.custbutt.palette.md_bg_color)
 
@@ -571,6 +643,23 @@ class SmartBricksApp(MDApp):
     def custom_bottom_sheet(self):
         self.custom_sheet = MDCustomBottomSheet(screen=Factory.ContentCustomSheet())
         self.custom_sheet.open()
+        
+    def show_gallery(self):
+        
+        self.openScreenName('camera')
+        
+        types = ('*.png', '*.jpeg', '*.jpg') # the tuple of file types
+        files_grabbed = []
+        for files in types:
+            files_grabbed.extend(glob.glob(os.path.join(self.SD_CARD, files)))
+
+        files_grabbed.sort(key=os.path.getmtime)
+        files_grabbed.reverse()
+        
+        for file in files_grabbed[:20]:
+            self.root.ids.grid_list_camera.add_widget(
+                CustomSmartTileWithLabelGallery(source = file, text = "[size=18]%s[/size]" %(os.path.basename(file)))
+                )
 
     def file_manager_open(self):
         #self.file_manager.show('/home/omar/Pictures')  # output manager to the screen
@@ -586,7 +675,11 @@ class SmartBricksApp(MDApp):
         :param path: path to the selected directory or file;
         '''
 
-        self.exit_manager()
+        try:
+            self.exit_manager()
+        except:
+            pass
+            
         self.openScreenName('setup')
         self.root.ids.setup_image.source = path
         toast(path)

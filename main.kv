@@ -19,6 +19,10 @@
     on_press: app.chooseproject(stlab.source)
     #on_press: root.image.source = stlab.source
     #on_release: app.openScreenName('main')
+    
+<CustomSmartTileWithLabelGallery@SmartTileWithLabel>:
+    id: stlabGall
+    on_press: app.select_path(stlabGall.source)
 
 #<CustomMDIconButton@MDFloatingActionButton>:
 <CustomMDIconButton@DFillRoundFlatIconButton>:
@@ -38,7 +42,7 @@
 
         #on_release: print(palette.md_bg_color)
         on_press: app.callback_for_menu_items('%s selected' %(palette.text))
-        on_release: app.choose_palette(palette.md_bg_color, palette.text, palette)
+        on_press: app.choose_palette(palette.md_bg_color, palette.text, palette)
 
 <CustomMDChip>:
 
@@ -138,14 +142,23 @@
                 icon: "camera"
                 text: "CAMERA"
                 #icon_size: "100sp"
-                on_release: app.show_dialog_empty()
+                #on_release: app.show_dialog_empty()
                 #on_release: app.openScreenName('projects')
                 #on_release: app.custom_sheet.dismiss()
+                #on_release: app.openScreenName('camera')
+                on_release: app.show_gallery()
+                on_release: app.custom_sheet.dismiss()
 
             ItemForCustomBottomSheet:
                 icon: "file-image-outline"
                 text: "GALLERY"
                 on_release: app.file_manager_open()
+                on_release: app.custom_sheet.dismiss()
+                
+            ItemForCustomBottomSheet:
+                icon: "file-image-outline"
+                text: "crop image"
+                on_release: app.openScreenName('test2')
                 on_release: app.custom_sheet.dismiss()
 
 <MySmartTileWithLabel@SmartTileWithLabel>:
@@ -248,6 +261,43 @@ Screen:
                             height: self.minimum_height
                             padding: dp(4), dp(4)
                             spacing: dp(4)
+                            
+                            
+            Screen:
+                name: "camera"
+                BoxLayout:
+                    orientation: 'vertical'
+
+                    MDToolbar:
+                        title: "Gallery"
+                        md_bg_color: app.theme_cls.primary_color
+                        left_action_items: [['arrow-left', lambda x: app.openScreenName('screen1')]]
+
+                    ScrollView:
+                        do_scroll_x: False
+                        
+                        MDGridLayout:
+                            id: grid_list_camera
+                            cols: 3
+                            row_default_height: (self.width - self.cols*self.spacing[0])/self.cols
+                            height: self.minimum_height
+                            adaptive_height: True
+                            padding: dp(4), dp(4)
+                            spacing: dp(4)
+
+                        #GridLayout:
+
+                            #id: grid_list_camera
+                            #cols: 2
+                            #row_default_height: (self.width - self.cols*self.spacing[0])/self.cols
+                            #row_force_default: True
+                            #adaptive_height: True
+                            #size_hint_y: None
+                            #height: self.minimum_height
+                            #padding: dp(4), dp(4)
+                            #spacing: dp(4)
+                            
+                        
 
             Screen:
 
@@ -261,7 +311,7 @@ Screen:
                         title: "Mosaic Brick"
                         md_bg_color: app.theme_cls.primary_color
                         left_action_items: [['arrow-left', lambda x: app.openScreenName('screen1')]]
-                        right_action_items: [['share-variant', lambda x: app.callback_for_menu_items('Share buttom')], ['pencil', lambda x: app.show_dialog_eddit()], ['toy-brick-search', lambda x: app.goto_table()], ['palette', lambda x: nav_drawer.set_state("toggle")]]
+                        right_action_items: [['share-variant', lambda x: app.callback_for_menu_items('Share buttom')], ['pencil', lambda x: app.show_dialog_eddit()], ['file-table', lambda x: app.goto_table()], ['palette', lambda x: nav_drawer.set_state("toggle")]]
                         #right_action_items: [["dots-vertical", lambda x: app.callback_1()], ["clock", lambda x: app.callback_2()]]
 
                     Image:
@@ -273,7 +323,8 @@ Screen:
                         allow_stretch: True
                         anim_delay: 0.5
                         keep_ratio: True
-                        nocache: True
+                        nocache: False
+                        keep_data : False
                         #source: '/home/omar/myproj_out/gorky/87.0_88.0_87.0.gif'
 
                     MDFillRoundFlatButton:
@@ -337,6 +388,28 @@ Screen:
                                 theme_text_color: "Custom"
                                 text_color: (1,1,1,1)
                                 #halign: 'center'
+                                
+                                
+            Screen:
+                name: 'test2'
+                
+                BoxLayout:
+                    spacing: dp(10)
+                    orientation: 'vertical'
+                    
+                    MDToolbar:
+                        id: toolbar
+                        title: "Crop Image"
+                        md_bg_color: app.theme_cls.primary_color
+                        left_action_items: [['arrow-left', lambda x: app.openScreenName('screen1')]]
+
+                    FitImage:
+                        size_hint_y: 1
+                        source: '/home/omar/Pictures/lion.png'
+
+                    FitImage:
+                        size_hint_y: 1
+                        source: '/home/omar/myproj/SmartBricks/images/2x2.jpg'
 
             Screen:
                 name: "setup"
