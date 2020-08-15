@@ -14,6 +14,12 @@
 #        theme_text_color: "Custom"
 #        text_color: root.text_color
 
+<mybutton@MDFillRoundFlatButton>:
+    font_size: "15sp"
+    pos_hint: {"center_x": .5}
+    increment_width: "120dp"
+    height: "40dp"
+
 <CustomSmartTileWithLabel@SmartTileWithLabel>:
     id: stlab
     on_press: app.chooseproject(stlab.source)
@@ -180,25 +186,39 @@ Screen:
                     orientation: 'vertical'
                     cols: 1
                     padding: dp(10)
-                    size_hint: None, None
+                    size_hint_x: 1
                     size: self.minimum_size
-                    spacing: dp(10)
+                    spacing: dp(20)
                     pos_hint: {"center_x": .5}
+                    
+                    Widget:
+                        size_hint_y: None
+                        height: dp(10)
 
                     MDLabel:
                         text: "SmartBricks"
                         font_style: 'H3'
-                        theme_text_color: "Custom"
-                        text_color: (0,1,0,1)
+                        #pos_hint: {"center_x": .5}
+                        #theme_text_color: "Custom"
+                        #text_color: (0,1,0,1)
+                        #size_hint_y: 1
+                        #pos_hint: 0.5, 0.5
+                        halign: "center"
+                        
+                    #Widget:
+                    #    size_hint_y: None
+                    #    height: dp(10)
 
                     Image:
                         id: avatar
-                        size_hint: None, None
-                        size: "1000dp", "1000dp"
+                        #size_hint: None, None
+                        #size: "300dp", "300dp"
                         #source: "/home/omar/myproj_out/logo/logo.zip"
                         anim_delay: 1
+                        size_hint_y: 3
                         keep_ratio: True
                         nocache: True
+                        allow_stretch: True
                         #source: "KivyMD/demos/kitchen_sink/assets/african-lion-951778_1280.png"
 
 
@@ -207,13 +227,8 @@ Screen:
                         height: dp(10)
 
 
-                    MDFillRoundFlatButton:
+                    mybutton:
                         text: "START"
-                        font_size: "25sp"
-                        pos_hint: {"center_x": .5}
-                        increment_width: "200dp"
-                        height: "60dp"
-                        #callback: lambda: app.show_example_bottom_sheet()
                         on_release: app.custom_bottom_sheet()
 
                     Widget:
@@ -221,13 +236,8 @@ Screen:
                         height: dp(10)
 
 
-                    MDFillRoundFlatButton:
+                    mybutton:
                         text: "PROJECTS"
-                        font_size: "25sp"
-                        pos_hint: {"center_x": .5}
-                        increment_width: "200dp"
-                        height: "60dp"
-                        #on_release: screen_manager.current = 'projects'
                         on_release: app.ifproject()
 
                     Widget:
@@ -311,7 +321,7 @@ Screen:
                         title: "Mosaic Brick"
                         md_bg_color: app.theme_cls.primary_color
                         left_action_items: [['arrow-left', lambda x: app.openScreenName('screen1')]]
-                        right_action_items: [['share-variant', lambda x: app.callback_for_menu_items('Share buttom')], ['pencil', lambda x: app.show_dialog_eddit()], ['file-table', lambda x: app.goto_table()], ['palette', lambda x: nav_drawer.set_state("toggle")]]
+                        right_action_items: [['share-variant', lambda x: app.callback_for_menu_items('Share buttom')], ['pencil', lambda x: app.show_dialog_eddit()], ['file-table', lambda x: app.goto_table()], ['palette', lambda x: nav_drawer.set_state("toggle")],["dots-vertical", lambda x: app.callback_for_menu_items('Share buttom')]]
                         #right_action_items: [["dots-vertical", lambda x: app.callback_1()], ["clock", lambda x: app.callback_2()]]
 
                     Image:
@@ -327,11 +337,13 @@ Screen:
                         keep_data : False
                         #source: '/home/omar/myproj_out/gorky/87.0_88.0_87.0.gif'
 
-                    MDFillRoundFlatButton:
-                        text: "PLACE ORDER"
-                        font_size: "25sp"
-                        pos_hint: {"center_x": .5}
+                    mybutton:
+                        text: "BUY mosaic"
                         on_release: app.show_dialog_buy()
+
+                    Widget:
+                        size_hint_y: None
+                        height: dp(10)
 
 
                     MDToolbar:
@@ -396,6 +408,7 @@ Screen:
                 BoxLayout:
                     spacing: dp(10)
                     orientation: 'vertical'
+                    pos_hint: {"center_x": .5}
                     
                     MDToolbar:
                         id: toolbar
@@ -413,81 +426,88 @@ Screen:
 
             Screen:
                 name: "setup"
+
                 BoxLayout:
-                    id: setup
                     spacing: dp(10)
                     orientation: 'vertical'
-                    pos_hint: {"center_x": .5}
 
                     MDToolbar:
-                        #id: toolbar
                         title: "Set Up"
                         md_bg_color: app.theme_cls.primary_color
                         left_action_items: [['arrow-left', lambda x: app.openScreenName('screen1')]]
 
+
+                    #ScrollView:
+
+                        #GridLayout:
+                        #    padding: dp(30)
+                        #    spacing: dp(15)
+                        #    cols: 1
+                        #    size_hint_y: None
+                        #    height: self.minimum_height
+                        #    pos_hint: {"center_x": .5}
+                            
                     Image:
                         id: setup_image
+                        size: "300dp", "300dp"
+                        keep_ratio: True
                         nocache: True
+                        allow_stretch: True
+                        size_hint_y: 3
 
-                    ScrollView:
 
-                        GridLayout:
-                            padding: dp(30)
-                            spacing: dp(15)
-                            cols: 1
-                            size_hint_y: None
-                            height: self.minimum_height
-                            pos_hint: {"center_x": .5}
+                    #Widget:
+                    #    size_hint_y: None
+                    #    height: dp(20)
 
-                            Widget:
-                                size_hint_y: None
-                                height: dp(20)
+                    BoxLayout:
+                        #spacing: dp(10)
+                        orientation: 'vertical'
 
-                            MDLabel:
-                                text: "Choose mosaic smallest side length:"
-                                font_style: 'H6'
 
-                            MDSeparator:
+                        MDLabel:
+                            text: "Choose mosaic smallest side length:"
+                            font_style: 'H6'
 
-                            MDChooseChip:
-                                id: mosaic_size
+                        MDSeparator:
 
-                            Widget:
-                                size_hint_y: None
-                                height: dp(20)
+                        MDChooseChip:
+                            id: mosaic_size
 
-                            MDLabel:
-                                text: "Choose how many colors to use in mosaic:"
-                                font_style: 'H6'
+                        MDLabel:
+                            text: "Choose how many colors to use in mosaic:"
+                            font_style: 'H6'
 
-                            MDSeparator:
+                        MDSeparator:
 
-                            MDChooseChip:
-                                id: mosaic_colors
+                        MDChooseChip:
+                            id: mosaic_colors
 
-                            Widget:
-                                size_hint_y: None
-                                height: dp(20)
+                    Widget:
+                        size_hint_y: None
+                        height: dp(10)
 
-                            MDTextField:
-                                id: project_name
-                                hint_text: "Project Name"
-                                helper_text: "name the project to be saved. Use no spaces or special characters"
-                                required: True
-                                helper_text_mode: "on_focus"
+                    MDTextField:
+                        id: project_name
+                        hint_text: "Project Name"
+                        helper_text: "name the project to be saved. Use no spaces or special characters"
+                        required: True
+                        helper_text_mode: "on_focus"
 
-                            Widget:
-                                size_hint_y: None
-                                height: dp(30)
+                    Widget:
+                        size_hint_y: None
+                        height: dp(10)
 
-                            MDFillRoundFlatButton:
-                                text: "CREATE MOSAIC"
-                                font_size: "25sp"
-                                pos_hint: {"center_x": .5}
-                                #on_release: app.show_dialog_progress()
-                                #on_release: app.puopen()
-                                #on_release: app.show_example_download_file()
-                                on_release: app.create_mosaic()
+                    mybutton:
+                        text: "CREATE MOSAIC"
+                        #on_release: app.show_dialog_progress()
+                        #on_release: app.puopen()
+                        #on_release: app.show_example_download_file()
+                        on_release: app.create_mosaic()
+
+                    Widget:
+                        size_hint_y: None
+                        height: dp(15)
 
             Screen:
                 name: 'mosaic_details'

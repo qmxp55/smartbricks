@@ -20,6 +20,7 @@ from kivymd.uix.chip import MDChip, MDChooseChip
 from kivymd.uix.dialog import MDDialog
 from kivymd.uix.datatables import MDDataTable
 from kivymd.uix.bottomsheet import MDCustomBottomSheet, MDGridBottomSheet, MDListBottomSheet
+from kivymd.uix.menu import MDDropdownMenu, RightContent
 
 import os
 import io
@@ -380,8 +381,24 @@ class SmartBricksApp(MDApp):
 
     def create_mosaic(self):
 
-        if (self.mosaic_size_val is None) or (self.mosaic_color_val is None):
-            toast('Choose mosaic size and colors first')
+        print('LOWSIZE --------', type(self.mosaic_size_val))
+        print('NCOLORS --------', type(self.mosaic_color_val))
+        print('OUTDIR --------', type(self.root.ids.project_name.text))
+
+        if (self.mosaic_size_val is None) or (self.mosaic_color_val is None) or (self.root.ids.project_name.text == ''):
+
+            ttext = 'Define mosaic input values'
+
+            if (self.mosaic_size_val is None): ttext += ', lower size'
+            if (self.mosaic_color_val is None): ttext += ', colors'
+            if (self.root.ids.project_name.text == ''): ttext += ', project name'
+
+            print('TEXT ------ ', ttext)
+
+            toast(ttext)
+        #elif
+        #elif (if not self.root.ids.project_name.text):
+        #    toast('Choose a project name first')
         else:
             #print(self.root.ids.setup_image.source)
             #print(int(self.mosaic_size_val))
@@ -399,15 +416,15 @@ class SmartBricksApp(MDApp):
 
 
 
-        if (self.plist() is not None):
-            if (self.root.ids.project_name.text in self.plist()):
+            if (self.plist() is not None):
+                if (self.root.ids.project_name.text in self.plist()):
 
-                print('project name already exist...')
-                self.show_alert_dialog(name=self.root.ids.project_name.text)
+                    print('project name already exist...')
+                    self.show_alert_dialog(name=self.root.ids.project_name.text)
+                else:
+                    self.show_dialog_progress()
             else:
                 self.show_dialog_progress()
-        else:
-            self.show_dialog_progress()
 
 
     def show_dialog_progress(self):
