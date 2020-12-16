@@ -15,14 +15,14 @@ Resulting mosaic will be displayed and you can switch back on to the original im
 
 Snapshots of the home, original image and resulting mosaic are displayed below.
 
-![](images/home.png)
-![](images/before.png)
-![](images/after.png)
+![](images/home.jpg)
+![](images/before.jpg)
+![](images/after.jpg)
 
 Snapshots of the color palet and mosaic table are below.
 
-![](images/color.png)
-![](images/table.png)
+![](images/color.jpg)
+![](images/table.jpg)
 
 
 ## How it works?
