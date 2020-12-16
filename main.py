@@ -21,6 +21,8 @@ from kivymd.uix.dialog import MDDialog
 from kivymd.uix.datatables import MDDataTable
 from kivymd.uix.bottomsheet import MDCustomBottomSheet, MDGridBottomSheet, MDListBottomSheet
 from kivymd.uix.menu import MDDropdownMenu, RightContent
+from kivymd.uix.behaviors import RectangularElevationBehavior
+from kivymd.uix.boxlayout import MDBoxLayout
 
 import os
 import io
@@ -40,6 +42,16 @@ except ModuleNotFoundError:
     pass
 
 
+class RightContentCls(RightContent):
+    pass
+
+class CustomToolbar(ThemableBehavior, RectangularElevationBehavior, MDBoxLayout):
+
+    #button_2 = ObjectProperty(None)
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.md_bg_color = self.theme_cls.primary_color
 
 class ContentNavigationDrawer(BoxLayout):
     pass
@@ -103,6 +115,12 @@ class SmartBricksApp(MDApp):
             select_path=self.select_path,
             previous=True, ext=['jpeg', 'png', 'jpg'])
 
+        #self.menu_2 = self.create_menu("Button dots", self.root.ids.toolbar.ids.button_2)
+        #print('HEREEEEEEE!!!!', self.root)
+        #cm = CustomToolbar
+
+
+
         try:
 
             request_permissions([Permission.WRITE_EXTERNAL_STORAGE,
@@ -110,11 +128,33 @@ class SmartBricksApp(MDApp):
         except NameError:
             pass
 
+    def dropdown(self, id):
+
+        self.menu_2 = self.create_menu("Button dots", id)
+        self.menu_2.open()
+
+
+    def create_menu(self, instance):
+
+        menu_items = [
+            {
+                "right_content_cls": RightContentCls(
+                    #text=f"R", icon="apple-keyboard-command",
+                ),
+                "icon": "apple-keyboard-command",
+                "text": text,
+            }
+            for text in ('RENAME', 'DELETE')
+        ]
+        return MDDropdownMenu(caller=instance, items=menu_items, width_mult=4)
+
+
     def build(self):
         #Window.bind(on_keyboard=self.key_input)
         self.screen = Builder.load_file("main.kv")
 
         return self.screen
+
 
     def on_pause(self):
         return True
@@ -622,6 +662,8 @@ class SmartBricksApp(MDApp):
         self.dialog2 = None
         self.value99 = 0
         #self.pb = progress_bar()
+
+        self.menu_2 = self.create_menu(self.root.ids.toolbar)
 
         self.root.ids.avatar.source = '%s/images/logo.zip' %(self.path)
 

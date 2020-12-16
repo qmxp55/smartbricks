@@ -41,7 +41,7 @@ class SmartBricks:
         self.outdir = outdir
         #self.size = (600 - (lowsize*400/64)) if lowsize > 24 else 550
         self.size = (85 - (lowsize*80/64)) if lowsize > 12 else 550
-        self.frompc = True
+        self.frompc = False
         self.lmax = 8
         #self.loader = loader
         #self.fig = plt.figure(figsize=(20,20))

@@ -14,6 +14,53 @@
 #        theme_text_color: "Custom"
 #        text_color: root.text_color
 
+<RightContentCls>:
+    disabled: True
+
+    MDIconButton:
+        icon: root.icon
+        user_font_size: "16sp"
+        pos_hint: {"center_y": .5}
+
+    MDLabel:
+        text: root.text
+        font_style: "Caption"
+        size_hint_x: None
+        width: self.texture_size[0]
+        text_size: None, None
+
+<CustomToolbar>:
+
+    #button_2: button_2.__self__
+
+    size_hint_y: None
+    height: self.theme_cls.standard_increment
+    padding: "5dp"
+    spacing: "12dp"
+
+    MDIconButton:
+        id: button_1
+        icon: "menu"
+        pos_hint: {"center_y": .5}
+        #on_release: app.menu_1.open()
+
+    MDLabel:
+        text: "MDDropdownMenu"
+        pos_hint: {"center_y": .5}
+        size_hint_x: None
+        width: self.texture_size[0]
+        text_size: None, None
+        font_style: 'H6'
+
+    Widget:
+
+    MDIconButton:
+        id: button_2
+        icon: "dots-vertical"
+        pos_hint: {"center_y": .5}
+        #on_release: app.dropdown(button_2)
+        on_release: app.menu_2.open()
+
 <mybutton@MDFillRoundFlatButton>:
     font_size: "15sp"
     pos_hint: {"center_x": .5}
@@ -318,11 +365,17 @@ Screen:
                     id: details
 
                     MDToolbar:
+                        id: toolbar
                         title: "Mosaic Brick"
                         md_bg_color: app.theme_cls.primary_color
                         left_action_items: [['arrow-left', lambda x: app.openScreenName('screen1')]]
-                        right_action_items: [['share-variant', lambda x: app.callback_for_menu_items('Share buttom')], ['pencil', lambda x: app.show_dialog_eddit()], ['file-table', lambda x: app.goto_table()], ['palette', lambda x: nav_drawer.set_state("toggle")],["dots-vertical", lambda x: app.callback_for_menu_items('Share buttom')]]
+                        right_action_items: [['share-variant', lambda x: app.callback_for_menu_items('Share buttom')], ['pencil', lambda x: app.show_dialog_eddit()], ['file-table', lambda x: app.goto_table()], ['palette', lambda x: nav_drawer.set_state("toggle")],["dots-vertical", lambda x: app.menu_2.open()]]
                         #right_action_items: [["dots-vertical", lambda x: app.callback_1()], ["clock", lambda x: app.callback_2()]]
+
+                    #CustomToolbar:
+                    #    id: toolbar
+                    #    elevation: 10
+                    #    pos_hint: {"top": 1}
 
                     Image:
 
