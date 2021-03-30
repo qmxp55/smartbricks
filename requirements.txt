@@ -22,7 +22,7 @@ numpy==1.18.5
 olefile==0.46
 pandas @ file:///tmp/build/80754af9/pandas_1592841632039/work
 Pillow @ file:///tmp/build/80754af9/pillow_1594307325547/work
-Pygments==2.6.1
+Pygments==2.7.4
 pyparsing==2.4.7
 python-dateutil==2.8.1
 pytz==2020.1
