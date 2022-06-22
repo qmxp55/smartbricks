@@ -18,7 +18,7 @@ mkl-fft==1.1.0
 mkl-random==1.1.1
 mkl-service==2.3.0
 networkx @ file:///tmp/build/80754af9/networkx_1594377231366/work
-numpy==1.18.5
+numpy==1.22.0
 olefile==0.46
 pandas @ file:///tmp/build/80754af9/pandas_1592841632039/work
 Pillow @ file:///tmp/build/80754af9/pillow_1594307325547/work
