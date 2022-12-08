@@ -1,4 +1,4 @@
-certifi==2020.6.20
+certifi==2022.12.7
 chardet==3.0.4
 cloudpickle @ file:///tmp/build/80754af9/cloudpickle_1594141588948/work
 cycler==0.10.0
